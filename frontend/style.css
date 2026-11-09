@@ -651,7 +651,10 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   .sec { margin-top: 26px; }
 
   /* intestazione: titolo grande a sinistra, azioni in riquadri */
-  .top { background: color-mix(in srgb, var(--paper) 92%, transparent); border-bottom: 0; gap: 10px; }
+  /* intestazione fusa con la pagina: nessun fondo proprio, scorre con il contenuto (lo sfondo del mazzo arriva fino in cima) */
+  .top { position: relative; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 0; gap: 10px; }
+  .toolbar, .selinfo { top: env(safe-area-inset-top); }
+  .toolbar.inset { background: color-mix(in srgb, var(--paper) 70%, transparent); }
   .top h1 { font-size: 28px; font-weight: 750; letter-spacing: -.02em; }
   .top.t-c .acct { display: none; }
   .top.t-h h1 { font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
