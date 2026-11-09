@@ -24,8 +24,9 @@ export type CardCtx = 'collection' | 'deck' | 'wish' | 'search';
 // Scheda della carta (telefono), la stessa in ogni sezione: carta grande in 3D, le tue copie, poi Carta / Stampe / Nei mazzi.
 // ctx = sezione da cui si apre: le opzioni proprie della sezione arrivano da panel (riquadro sotto il prezzo) e bar (pulsanti in basso);
 // in Collezione le copie si modificano, altrove si vedono soltanto.
-export default function CardDetail({ item: it, card: given, printingId, name: nm, ctx = 'collection', panel, bar, onClose, onChanged }: {
-  item?: Any; card?: Any; printingId?: string; name?: string; ctx?: CardCtx; panel?: ReactNode; bar?: ReactNode; onClose: () => void; onChanged?: () => void }) {
+// inline = pannello dentro la pagina (computer: a sinistra di mazzo e collezione), senza voce nella cronologia e senza freccia indietro
+export default function CardDetail({ item: it, card: given, printingId, name: nm, ctx = 'collection', panel, bar, inline, onClose, onChanged }: {
+  item?: Any; card?: Any; printingId?: string; name?: string; ctx?: CardCtx; panel?: ReactNode; bar?: ReactNode; inline?: boolean; onClose: () => void; onChanged?: () => void }) {
   const item = { name: nm ?? it?.name ?? given?.name ?? '', printing_id: printingId ?? it?.printing_id ?? given?.id, image_small: it?.image_small ?? imgOf(given, 'small'), color_identity: it?.color_identity ?? given?.color_identity, id: it?.id ?? 0 };
   const editable = ctx === 'collection';
   const [card, setCard] = useState<Any | null>(null), [shown, setShown] = useState<Any | null>(null), [err, setErr] = useState('');
@@ -38,11 +39,12 @@ export default function CardDetail({ item: it, card: given, printingId, name: nm
   useEffect(() => { if (tab === 's' && !prints && card?.oracle_id) printsOfCards([card.oracle_id]).then(setPrints).catch(() => setPrints([])); }, [tab, card]);
   // la scheda è una voce della cronologia: il gesto "indietro" la chiude
   useEffect(() => {
+    if (inline) return;
     history.pushState({ ...(history.state ?? {}), card: item.printing_id ?? 1 }, ''); const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
     const pop = () => onClose(); addEventListener('popstate', pop);
     return () => { removeEventListener('popstate', pop); document.body.style.overflow = prev; };
   }, []); // eslint-disable-line
-  const close = () => history.back();
+  const close = () => inline ? onClose() : history.back();
   const changed = () => { load(); onChanged?.(); };
 
   const mine = items.filter(i => i.name === item.name), copies = mine.reduce((t, i) => t + i.qty, 0), value = mine.reduce((t, i) => t + (i.price ?? 0) * i.qty, 0);
@@ -64,10 +66,10 @@ export default function CardDetail({ item: it, card: given, printingId, name: nm
     <span className="corner"><span className="num">{d.cards} / 100</span>{tag}</span></div>;
   const texts: Any[] = card?.card_faces?.length && !card.oracle_text ? card.card_faces : card ? [card] : [];
 
-  return createPortal(<div className="cdetail" ref={box} style={{ '--glow': glow(ci), '--art': c ? `url("${imgOf(c, 'art_crop')}")` : 'none' } as React.CSSProperties}>
+  const view = <div className={'cdetail' + (inline ? ' inline' : '')} ref={box} style={{ '--glow': glow(ci), '--art': c ? `url("${imgOf(c, 'art_crop')}")` : 'none' } as React.CSSProperties}>
     <div className="cd-art" aria-hidden="true" />
     <div className="cd-top">
-      <button className="icon sq" aria-label="Indietro" onClick={close}><Icon name="back" /></button>
+      {inline ? <span /> : <button className="icon sq" aria-label="Indietro" onClick={close}><Icon name="back" /></button>}
       <Menu label="Altro" className="icon sq" items={[
         { icon: 'open', label: 'Apri su Scryfall', onClick: () => window.open(c?.scryfall_uri ?? 'https://scryfall.com', '_blank', 'noopener') },
         { icon: 'euro', label: 'Apri su Cardmarket', onClick: () => window.open(cm, '_blank', 'noopener') },
@@ -149,5 +151,6 @@ export default function CardDetail({ item: it, card: given, printingId, name: nm
       {decks.some(d => !d.archived) ? <div className="list">{decks.filter(d => !d.archived).map(d => <button key={d.id} className="item" onClick={() => addToDeck(d)}>
         <div className="g"><div className="name">{d.name}</div><div className="meta"><span>{d.commanders || 'Senza comandante'}</span><span>{d.cards}/100</span></div></div><Icon name="next" /></button>)}</div>
         : <p className="m">Non hai ancora mazzi: creane uno dalla sezione Mazzi.</p>}</Sheet>}
-  </div>, document.body);
+  </div>;
+  return inline ? view : createPortal(view, document.body);
 }

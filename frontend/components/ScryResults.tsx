@@ -27,7 +27,7 @@ export default function ScryResults({ q, mode, title, actions, limit = 8, expand
   return <div className="list found">
     <div className="listhead">{title}{!r && <span className="n">cerco…</span>}</div>
     {r && !r.length && <div className="item"><span className="m">Nessuna carta su Scryfall per “{query}”. Prova con il nome inglese.</span></div>}
-    {list.map(c => [<div className={'item' + (isWide ? '' : ' tap')} key={c.id} onClick={isWide ? undefined : e => { if (!(e.target as HTMLElement).closest('button')) setOpen(c); }}>
+    {list.map(c => [<div className="item tap" key={c.id} onClick={e => { if (!(e.target as HTMLElement).closest('button')) setOpen(c); }}>
       <img className="thumb" alt="" loading="lazy" src={img(c)} {...bind(img(c))} />
       <div className="g"><div className="name">{c.name}</div>
         <div className="meta"><span>{c.set.toUpperCase()} {c.collector_number}</span>{eurOf(c) != null && <span>{eur(eurOf(c))}</span>}</div></div>

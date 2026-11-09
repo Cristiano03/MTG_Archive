@@ -39,7 +39,7 @@ export default function Wishlist() {
   };
   const setPrint = (r: Any, p: Any | null) => act(async () => { await api(`/wishlist/${r.id}/printing`, 'POST', { printing_id: p?.id ?? null }); setMode(null); });
   const toBuy = rows.reduce((t, r) => t + r.to_buy, 0), cost = rows.reduce((t, r) => t + (r.price_ref ? r.to_buy * Number(r.price_ref) : 0), 0);
-  const toggle = (r: Any) => { if (!isWide) { setDet(r.id); setMode(null); return; } setOpen(open === r.id ? null : r.id); setMode(null); };
+  const toggle = (r: Any) => { setDet(r.id); setMode(null); }; // scheda della carta con le opzioni della lista (telefono e computer)
 
   return <>
     <div className="toolbar">

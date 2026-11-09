@@ -12,7 +12,7 @@ const COLS = ['W', 'U', 'B', 'R', 'G', 'C'];
 const ago = (d: string) => { const n = Math.floor((Date.now() - new Date(d).getTime()) / 864e5); return n <= 0 ? 'aggiunta oggi' : n === 1 ? 'ieri' : n < 30 ? `${n} giorni fa` : new Date(d).toLocaleDateString('it'); };
 
 // Home del telefono: valore, carte in evidenza (i comandanti dei mazzi), cosa sistemare, identità di colore, mazzi, desideri, ultime aggiunte.
-export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any[] | null; pricing: boolean; go: Go }) {
+export default function HomeMobile({ s, wish, pricing, go, featured = true }: { s: Any; wish: Any[] | null; pricing: boolean; go: Go; featured?: boolean }) {
   const [items, setItems] = useState<Any[]>([]), [decks, setDecks] = useState<Any[]>([]), [feat, setFeat] = useState<Any[]>([]), [k, setK] = useState(0);
   const [col, setCol] = useState<string | null>(null), [card, setCard] = useState<Any | null>(null), [peek, setPeek] = useState<Any | null>(null);
   const load = () => Promise.all([api('/collection').then(setItems), api('/decks').then(setDecks)]).catch(() => {});
@@ -40,7 +40,7 @@ export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any
   const status = (d: Any) => { const p = prob.find(x => x.id === d.id); return !p ? { t: 'Legale', c: 'ok' } : p.missing ? { t: `${p.missing} mancanti`, c: 'wa' } : { t: p.status, c: 'm' }; };
   const date = v?.oldest ? new Date(v.oldest).toLocaleDateString('it') : null, stale = b.stale || b.lastError;
 
-  return <div className="mhome">
+  return <div className="mhome"><div className="mh-a">
     <section className="mvalue">
       <div className="lbl">Valore della collezione</div>
       <div className="row"><div className="big">{pricing && !v?.oldest ? '…' : <>{eur(v?.eur ?? 0).replace(/\s?€$/, '')}<span className="cur"> €</span></>}</div></div>
@@ -48,7 +48,7 @@ export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any
       <div className={'sub2' + (stale ? ' wa' : '')}>{date ? `Prezzi Cardmarket e banlist del ${date}` : 'Prezzi Cardmarket non ancora scaricati'}{stale ? ' · banlist da aggiornare' : ''}</div>
     </section>
 
-    {f && <section className="featured" style={{ '--glow': glow(f.ci) } as React.CSSProperties}>
+    {featured && f && <section className="featured" style={{ '--glow': glow(f.ci) } as React.CSSProperties}>
       {/* le carte restano le stesse e cambiano solo posto: davanti, dietro a destra (la prossima), dietro a sinistra (la precedente) */}
       <div className="fan" onClick={() => setK(k + 1)}>
         <span className="aura" />
@@ -81,6 +81,7 @@ export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any
       <button onClick={() => go('c', 'asg')}><b>{s.assigned}</b><small>Nei mazzi</small></button>
     </div>
 
+    </div><div className="mh-b">
     <div className="sec"><h3>I tuoi mazzi</h3><button className="link" onClick={() => go('d')}>Vedi tutti</button></div>
     <div className="hscroll">
       {act.map(d => { const st = status(d); return <button key={d.id} className="deckcard" style={{ '--glow': glow(d.ci) } as React.CSSProperties} onClick={() => go('d', `deck:${d.id}`)}>
@@ -100,6 +101,7 @@ export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any
         <span className="g"><b>{i.name}</b><small>{i.set_code.toUpperCase()} · {ago(i.created_at)}</small></span>
         {i.price != null && <span className="pr">{eur(i.price)}</span>}</button>)}</div></>}
 
+    </div>
     {card && <CardDetail item={card} onClose={() => setCard(null)} onChanged={load} />}
     {peek && <CardDetail printingId={peek.id} name={peek.name} onClose={() => setPeek(null)} onChanged={load} />}
   </div>;

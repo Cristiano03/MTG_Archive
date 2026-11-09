@@ -75,7 +75,7 @@ function Main({ email, onLogout }: { email: string; onLogout: () => void }) {
       {sub && <button className="icon ghost" aria-label="Indietro" onClick={() => go(prev)}><Icon name="back" /></button>}
       <div id="top-lead" className="top-lead m-only" />
       <h1>{TITLE[tab]}</h1>
-      {tab === 'h' && <button className="icon m-only" aria-label="Aggiungi" onClick={() => setAdding(true)}><Icon name="plus" /></button>}
+      {tab === 'h' && <button className="icon" aria-label="Aggiungi" onClick={() => setAdding(true)}><Icon name="plus" /></button>}
       <div id="top-actions" className="top-actions" />
       <button className={'icon ghost acct' + (tab === 'u' ? ' on' : '')} aria-label="Account" title={email} onClick={() => go('u')}><Icon name="user" /></button>
     </header>

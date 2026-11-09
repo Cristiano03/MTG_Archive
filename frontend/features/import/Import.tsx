@@ -31,7 +31,7 @@ export default function Import() {
     {msg && <div className="card ok">{msg}</div>}
     {rows && <div className="card"><b>Anteprima</b><p style={{ margin: '4px 0' }}>{ok.length} riconosciute, {rows.length - ok.length} con problemi</p>
       <div className={target === 'collection' ? 'wa' : 'm'}>{target === 'collection' ? 'Le quantità verranno aggiunte alle copie che già possiedi.' : physical && addMode !== 'none' ? 'Le carte che non hai libere verranno aggiunte anche alla collezione.' : 'Le carte vanno nel mazzo; la collezione non cambia.'}</div>
-      <div className="list">{rows.map((r, i) => <div className="item" key={i}>{r.image ? <img className="thumb" alt="" src={r.image} onClick={() => r.printing_id && !matchMedia('(min-width: 900px)').matches && setPeek(r)} /> : <span className="thumb" />}
+      <div className="list">{rows.map((r, i) => <div className="item" key={i}>{r.image ? <img className="thumb" alt="" src={r.image} onClick={() => r.printing_id && setPeek(r)} /> : <span className="thumb" />}
         <div className="g">{r.qty ? r.qty + '× ' : ''}{r.card_name ?? r.name ?? r.line}{r.section === 'cmd' ? ' ★' : ''}<br />
           <small className={r.status === 'ok' ? 'ok' : r.status === 'fuzzy' ? 'wa' : 'er'}>{r.status === 'ok' ? '✔ riconosciuta' : r.msg}{r.set_code ? `, ${r.set_code.toUpperCase()} ${r.collector_number}` : ''}</small></div></div>)}</div>
       {peek && <CardDetail printingId={peek.printing_id} name={peek.card_name} ctx="search" bar={null} onClose={() => setPeek(null)} />}

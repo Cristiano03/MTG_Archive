@@ -12,7 +12,7 @@ export default function Sheet({ title, sub, head, children, actions, onClose }: 
     <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()}>
       <div className="sheet-grip" aria-hidden="true" />
       <div className="sheet-head"><div className="g">{head ?? <><h2 className="sheet-title">{title}</h2>{sub && <p className="m sheet-sub">{sub}</p>}</>}</div>
-        <button className="icon m-only" aria-label="Chiudi" onClick={onClose}><Icon name="close" /></button></div>
+        <button className="icon" aria-label="Chiudi" onClick={onClose}><Icon name="close" /></button></div>
       <div className="sheet-body">{children}</div>
       {actions && <div className="sheet-actions">{actions}</div>}
     </div></div>, document.body);
