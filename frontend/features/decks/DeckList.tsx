@@ -9,7 +9,7 @@ import type { Go } from '../../pages/tabs';
 type Any = any;
 
 // Elenco dei mazzi: schede con costa colorata, comandante e avanzamento verso le 100 carte.
-export default function DeckList({ creating: startCreating, go }: { creating?: boolean; go: Go }) {
+export default function DeckList({ creating: startCreating, openId, go }: { creating?: boolean; openId?: number; go: Go }) {
   const [list, setList] = useState<Any[]>([]), [open, setOpen] = useState<number | null>(null), [loaded, setLoaded] = useState(false);
   const [creating, setCreating] = useState(!!startCreating), [name, setName] = useState(''), [mode, setMode] = useState<'physical' | 'virtual'>('physical');
   const load = useCallback(() => api('/decks').then(x => { setList(x); setLoaded(true); }).catch(fail), []);
@@ -21,6 +21,8 @@ export default function DeckList({ creating: startCreating, go }: { creating?: b
   }, [load]);
   const openDeck = (id: number) => { history.pushState({ deck: id }, ''); setOpen(id); window.scrollTo({ top: 0 }); };
   const closeDeck = () => { if (history.state?.deck) history.back(); else { setOpen(null); load(); window.scrollTo({ top: 0 }); } };
+  // dalla Home si può aprire direttamente un mazzo
+  useEffect(() => { if (openId) openDeck(openId); }, [openId]); // eslint-disable-line
   if (open !== null) return <DeckView id={open} back={closeDeck} go={go} />;
   const create = async (e: React.FormEvent) => {
     e.preventDefault(); if (!name.trim()) return;

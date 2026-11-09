@@ -5,6 +5,8 @@ import Icon from '../components/Icon';
 import InstallButton from '../components/InstallButton';
 import { eur, stalePrices } from '../components/Price';
 import { toast } from '../components/Toast';
+import { useWide } from '../components/useWide';
+import HomeMobile from './HomeMobile';
 type Any = any;
 const LABEL: Record<string, string> = { colore: 'Identità di colore', rarità: 'Rarità', set: 'Espansioni', tipo: 'Tipi' };
 const RAR_IT: Record<string, string> = { common: 'comuni', uncommon: 'non comuni', rare: 'rare', mythic: 'mitiche', special: 'speciali', bonus: 'bonus' };
@@ -13,13 +15,15 @@ const wide = () => matchMedia('(min-width: 900px)').matches;
 // Home: valore della collezione, azioni rapide, riepiloghi che portano alla sezione giusta, cosa c'è da sistemare.
 export default function HomePage({ go }: { go: Go }) {
   const [s, setS] = useState<Any>(), [err, setErr] = useState('');
-  const [pricing, setPricing] = useState(false), [wish, setWish] = useState<Any[] | null>(null);
+  const [pricing, setPricing] = useState(false), [wish, setWish] = useState<Any[] | null>(null), isWide = useWide();
   const load = () => api('/stats').then(x => { setS(x); setErr(''); return x; }).catch((e: Any) => { setErr(e.message); });
   // prezzi della collezione: si aggiornano da soli se mancano o hanno più di 20 ore, poi si ricalcola il valore
   const prices = async (force: boolean) => { setPricing(true); try { const r = await api('/prices/collection', 'POST', { force }); await load(); if (force) toast(`Prezzi aggiornati (${r.updated})`); } catch (e: Any) { if (force) toast(e.message, 'er'); } setPricing(false); };
   useEffect(() => { api('/wishlist').then(setWish).catch(() => setWish([])); load().then(x => { if (x?.copies > 0 && stalePrices(x.value)) prices(false); }); }, []);
   if (!s) return err ? <div className="card er"><b>Dati non disponibili</b><p style={{ margin: '6px 0 10px' }}>{err}</p><button onClick={load}>Riprova</button></div> : <p className="m">Caricamento…</p>;
   const refresh = async () => { try { const r = await api('/catalog/refresh', 'POST'); toast(`Legalità aggiornata per ${r.updated} carte`); } catch (e: Any) { toast(e.message, 'er'); } load(); };
+  // sul telefono la Home ha la grafica del prototipo
+  if (!isWide) return <><InstallButton /><HomeMobile s={s} wish={wish} pricing={pricing} go={go} onRefresh={async () => { await prices(true); await refresh(); }} /></>;
   const Tile = ({ n, label, t, tone, p }: { n: Any; label: string; t: Tab; tone?: string; p?: Preset }) =>
     <button className="tile" onClick={() => go(t, p)}><span className={'n ' + (tone ?? '')}>{n}</span><span className="l">{label}</span></button>;
   const b = s.banlist, stale = b.stale || (!b.lastOk && s.activeDecks > 0), v = s.value;

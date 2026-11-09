@@ -69,7 +69,8 @@ function Main({ email, onLogout }: { email: string; onLogout: () => void }) {
       {sub && <button className="icon ghost" aria-label="Indietro" onClick={() => go(prev)}><Icon name="back" /></button>}
       <h1>{TITLE[tab]}</h1>
       {tab === 'h' && <button className="icon m-only" aria-label="Aggiungi" onClick={() => setAdding(true)}><Icon name="plus" /></button>}
-      <button className={'icon ghost' + (tab === 'u' ? ' on' : '')} aria-label="Account" title={email} onClick={() => go('u')}><Icon name="user" /></button>
+      <div id="top-actions" className="top-actions" />
+      <button className={'icon ghost acct' + (tab === 'u' ? ' on' : '')} aria-label="Account" title={email} onClick={() => go('u')}><Icon name="user" /></button>
     </header>
     <main className="page" key={tab + round}>
       {tab === 'h' ? <HomePage go={go} /> : tab === 'c' ? <CollectionPage preset={preset} go={go} /> : tab === 'd' ? <DecksPage preset={preset} go={go} />

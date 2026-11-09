@@ -28,6 +28,7 @@ const P: Record<string, string> = {
   archive: 'M4 5h16v4H4zM6 9v10h12V9M10 13h4',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20a7.5 7.5 0 0 1 15 0',
   close: 'M6 6l12 12M18 6 6 18',
+  grid: 'M5 5h5.5v5.5H5zM13.5 5H19v5.5h-5.5zM5 13.5h5.5V19H5zM13.5 13.5H19V19h-5.5z',
   list: 'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01',
   euro: 'M17 6.5A6.5 6.5 0 1 0 17 17.5M4 10.5h9M4 13.5h9',
   cart: 'M4 5h2l2 10h10l2-7H7.5M10 19.5h.01M17 19.5h.01',

@@ -2,7 +2,8 @@ import Icon from './Icon';
 // Ordinamento (crescente/decrescente) e filtro per colore, condivisi da Collezione e Mazzi.
 export type SortKey = 'name' | 'cmc' | 'qty' | 'set' | 'recent' | 'price' | 'value';
 export type Sort = { key: SortKey; desc: boolean };
-export type ColorFilter = { col: string[]; all: boolean; by: 'colors' | 'identity' };
+// by: colore della carta, identità di colore, oppure 'playable' = giocabile in un mazzo con quei colori (identità contenuta nei colori scelti)
+export type ColorFilter = { col: string[]; all: boolean; by: 'colors' | 'identity' | 'playable' };
 export const NO_COLOR: ColorFilter = { col: [], all: false, by: 'colors' };
 const LABEL: Record<SortKey, string> = { name: 'Nome', cmc: 'Costo di mana', qty: 'Quantità', set: 'Espansione', recent: 'Aggiunte di recente', price: 'Prezzo', value: 'Valore totale' };
 const COLS = ['W', 'U', 'B', 'R', 'G', 'C'];
@@ -23,6 +24,7 @@ export function sortCards<T extends Card>(list: T[], s: Sort): T[] {
 }
 export function matchColor(c: Card, f: ColorFilter) {
   if (!f.col.length) return true;
+  if (f.by === 'playable') return (c.color_identity ?? []).every(x => f.col.includes(x));
   // le terre non hanno colore stampato: per loro conta l'identità di colore (Isola = blu); quelle senza identità restano incolori
   const land = !c.colors?.length && /\bLand\b/.test(c.type_line ?? '');
   const a = (f.by === 'identity' || land ? c.color_identity : c.colors) ?? [];

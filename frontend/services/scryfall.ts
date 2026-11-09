@@ -17,7 +17,7 @@ export const sfGet = async (u: string): Promise<any> => {
   if (r.status === 404) return null; if (!r.ok) throw fail(502, r.status === 429 ? 'Scryfall è sovraccarico: riprova tra un minuto' : 'Scryfall ' + r.status); return r.json();
 };
 // /cards/collection: fino a 75 identificatori per volta
-async function sfCollection(identifiers: object[]): Promise<any[]> {
+export async function sfCollection(identifiers: object[]): Promise<any[]> {
   const out: any[] = [];
   for (let i = 0; i < identifiers.length; i += 75) {
     if (i) await sleep(120);

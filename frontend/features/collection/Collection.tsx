@@ -1,4 +1,8 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useWide } from '../../components/useWide';
+import CardDetail from '../card/CardDetail';
+import FilterSheet from './FilterSheet';
 import { api, download, fail } from '../../services/api';
 import Search from '../../components/Search';
 import Icon from '../../components/Icon';
@@ -20,7 +24,7 @@ type Any = any;
 const COND = ['M', 'NM', 'EX', 'GD', 'LP', 'PL', 'PO'], FIN = ['nonfoil', 'foil', 'etched'];
 const FIN_IT: Record<string, string> = { nonfoil: 'normale', foil: 'foil', etched: 'etched' };
 const RAR_IT: Record<string, string> = { common: 'comune', uncommon: 'non comune', rare: 'rara', mythic: 'mitica' };
-const EMPTY = { rar: '', st: '', deck: '', min: '', max: '' };
+const EMPTY = { rar: '', st: '', deck: '', min: '', max: '', foil: '' };
 const SORTS = ['name', 'price', 'value', 'qty', 'cmc', 'set', 'recent'] as const;
 const wide = () => matchMedia('(min-width: 900px)').matches;
 
@@ -37,6 +41,10 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
   const [prints, setPrints] = useState<{ sets: Any[] | null; err?: string } | null>(null), [busyPrint, setBusyPrint] = useState(false);
   const [toDeck, setToDeck] = useState(false), [nd, setNd] = useState({ name: '', mode: 'physical' }), [printsOf, setPrintsOf] = useState<string | null>(null);
   const { bind, preview } = useCardPreview(); // anteprima grande sopra la miniatura
+  // telefono: la riga apre la scheda della carta; vista a elenco o a griglia di immagini
+  const isWide = useWide(), [card, setCard] = useState<Any | null>(null), [view, setView] = usePref<'list' | 'grid'>('view.collection', 'list');
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => { setSlot(document.getElementById('top-actions')); }, []);
   const toggle = (id: number) => setSel(cur => { const n = new Set(cur); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const load = useCallback(() => api('/collection').then(x => { setItems(x); setLoaded(true); return x; }).catch(fail), []);
   const loadDecks = () => api('/decks').then(setDecks).catch(() => {});
@@ -44,11 +52,14 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
   useEffect(() => { load().then(x => { if (x?.some((i: Any) => !i.price_at || Date.now() - new Date(i.price_at).getTime() > 20 * 3600e3)) api('/prices/collection', 'POST', {}).then(load).catch(() => {}); }); loadDecks(); }, [load]);
 
   const active = (color.col.length && color.by === 'identity' ? 1 : 0) + (f.rar ? 1 : 0) + (f.st ? 1 : 0) + (f.deck ? 1 : 0) + (f.min || f.max ? 1 : 0);
+  // filtri attivi come li conta il pannello del telefono (colori compresi)
+  const activeM = (color.col.length ? 1 : 0) + (f.rar ? 1 : 0) + (f.st ? 1 : 0) + (f.deck ? 1 : 0) + (f.min || f.max ? 1 : 0) + (f.foil ? 1 : 0);
   const qq = q.trim().toLowerCase();
   const shown = sortCards(items.filter(i => {
     if (qq && !i.name.toLowerCase().includes(qq)) return false;
     if (!matchColor(i, color)) return false;
-    if (f.rar && i.rarity !== f.rar) return false;
+    if (f.rar && !f.rar.split(',').includes(i.rarity)) return false;
+    if (f.foil && i.finish === 'nonfoil') return false;
     // quantità: copie della riga (della stampa), almeno / al massimo
     if (f.min !== '' && i.qty < Number(f.min) || f.max !== '' && i.qty > Number(f.max)) return false;
     if (f.st === 'free' && i.free <= 0 || f.st === 'asg' && i.assigned <= 0 || f.st === 'zero' && i.free > 0) return false;
@@ -124,9 +135,9 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
           <input type="search" enterKeyHint="search" autoCapitalize="off" autoCorrect="off" spellCheck={false} autoFocus={preset === 'add' || (wide() && !preset)}
             placeholder="Cerca carte" aria-label="Cerca nella collezione o aggiungi una carta" value={q} onChange={e => setQ(e.target.value)} />
           {q && <button className="clear" aria-label="Cancella la ricerca" onClick={() => setQ('')}><Icon name="close" /></button>}</div>
-        <button className={'icon' + (active ? ' soft' : '')} aria-label={`Filtri${active ? ` (${active} attivi)` : ''}`} title="Filtri" onClick={() => setShowF(true)}><Icon name="filter" />{active + (color.col.length ? 1 : 0) > 0 && <span className="badge dot m-only">{active + (color.col.length ? 1 : 0)}</span>}</button>
-        <button className={'icon' + (sel ? ' soft' : '')} aria-label="Seleziona più carte" title="Seleziona" aria-pressed={!!sel} disabled={!items.length} onClick={() => { setSel(sel ? null : new Set()); setEdit(null); }}><Icon name="select" /></button>
-        <Menu label="Altro" items={[
+        <button className={'icon' + (active ? ' soft' : '')} aria-label={`Filtri${active ? ` (${active} attivi)` : ''}`} title="Filtri" onClick={() => setShowF(true)}><Icon name="filter" />{activeM > 0 && <span className="badge dot m-only">{activeM}</span>}</button>
+        <button className={'icon d-only' + (sel ? ' soft' : '')} aria-label="Seleziona più carte" title="Seleziona" aria-pressed={!!sel} disabled={!items.length} onClick={() => { setSel(sel ? null : new Set()); setEdit(null); }}><Icon name="select" /></button>
+        <Menu label="Altro" className="icon d-only" items={[
           { icon: 'text', label: 'Importa una lista', sub: 'Incolla un elenco di carte (anche da Moxfield)', onClick: () => go('i') },
           { icon: 'scan', label: 'Scansiona le carte', hidden: wide(), onClick: () => go('s') },
           { icon: 'refresh', label: 'Aggiorna i prezzi', sub: 'Cardmarket, in euro', onClick: refreshPrices },
@@ -149,8 +160,20 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
       <span className="m-only sortlink"><Icon name="sortdown" /><SortChip value={sort} onChange={setSort} keys={[...SORTS]} /></span></p>}
     {sort.key === 'cmc' && items.length > 0 && items.every(i => i.cmc == null) && <p className="wa" style={{ margin: '4px 2px 8px' }}>Il costo di mana non è ancora disponibile: si scarica con «Aggiorna la banlist» nella pagina Mazzi.</p>}
 
-    {shown.length > 0 && <div className="list grid2 flat">{shown.map(i => <Fragment key={i.id}>
-      <div className={'item tap' + (sel?.has(i.id) ? ' selected' : '') + (edit === i.id ? ' open' : '')} onClick={() => sel ? toggle(i.id) : open(i)} aria-pressed={sel ? sel.has(i.id) : undefined}>
+    {!isWide && slot && createPortal(<>
+      <button className={'icon sq' + (view === 'grid' ? ' on' : '')} aria-label={view === 'grid' ? 'Vista a elenco' : 'Vista a griglia'} aria-pressed={view === 'grid'} onClick={() => setView(view === 'grid' ? 'list' : 'grid')}><Icon name={view === 'grid' ? 'list' : 'grid'} /></button>
+      <Menu label="Altro" className="icon sq" items={[
+        { icon: 'refresh', label: 'Aggiorna i prezzi', sub: 'Cardmarket, in euro', onClick: refreshPrices },
+        { icon: 'download', label: 'Esporta collezione', sub: 'File CSV, compatibile con Moxfield', onClick: () => download('/export/collection.csv') },
+        { icon: 'check', label: 'Seleziona più carte', sub: 'Aggiungi a un mazzo, cambia stampa o elimina in blocco', onClick: () => { setSel(sel ? null : new Set()); setEdit(null); } },
+        { icon: 'text', label: 'Importa una lista', sub: 'Incolla un elenco di carte (anche da Moxfield)', onClick: () => go('i') },
+      ]}><Icon name="dots" /></Menu></>, slot)}
+
+    {!isWide && view === 'grid' && shown.length > 0 && <div className="cgrid">{shown.map(i => <button key={i.id} className={sel?.has(i.id) ? 'selected' : ''} onClick={() => sel ? toggle(i.id) : setCard(i)}>
+      <img src={i.image_small?.replace('/small/', '/normal/')} alt={i.name} loading="lazy" /><span className="qty">×{i.qty}</span>{sel && <Check on={sel.has(i.id)} />}
+      {i.price != null && <small>{eur(i.price)}</small>}</button>)}</div>}
+    {shown.length > 0 && (isWide || view === 'list') && <div className="list grid2 flat">{shown.map(i => <Fragment key={i.id}>
+      <div className={'item tap' + (sel?.has(i.id) ? ' selected' : '') + (edit === i.id ? ' open' : '')} onClick={() => sel ? toggle(i.id) : isWide ? open(i) : setCard(i)} aria-pressed={sel ? sel.has(i.id) : undefined}>
         {sel && <Check on={sel.has(i.id)} />}
         <img className="thumb" alt="" loading="lazy" src={i.image_small} {...bind(i.image_small)} />
         <div className="g"><div className="name">{i.name}</div>
@@ -188,7 +211,10 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
       { icon: 'trash', label: 'Rimuovi', tone: 'danger', disabled: !sel.size, onClick: async () => { if (await removeRows([...sel])) setSel(null); } },
     ]} />}
 
-    {showF && <Sheet title="Filtri e ordinamento" onClose={() => setShowF(false)} actions={<><button onClick={() => { setF(EMPTY); setColor(NO_COLOR); }}>Azzera</button><button className="b" onClick={() => setShowF(false)}>Mostra {shown.length}</button></>}>
+    {showF && !isWide && <FilterSheet f={f} setF={setF} color={color} setColor={setColor} sort={sort} setSort={setSort} decks={decks} count={shown.length} active={activeM}
+      onReset={() => { setF(EMPTY); setColor(NO_COLOR); }} onClose={() => setShowF(false)} />}
+    {card && <CardDetail item={card} onClose={() => setCard(null)} onChanged={load} />}
+    {showF && isWide && <Sheet title="Filtri e ordinamento" onClose={() => setShowF(false)} actions={<><button onClick={() => { setF(EMPTY); setColor(NO_COLOR); }}>Azzera</button><button className="b" onClick={() => setShowF(false)}>Mostra {shown.length}</button></>}>
       <div className="filters" style={{ gridTemplateColumns: '1fr 1fr' }}>
         <div className="field" style={{ gridColumn: '1 / -1' }}>Colori<ManaToggles value={color} onChange={setColor} /></div>
         <label className="field">Il colore è<select value={color.by} onChange={e => setColor({ ...color, by: e.target.value as ColorFilter['by'] })}><option value="colors">quello della carta</option><option value="identity">l’identità di colore</option></select></label>
