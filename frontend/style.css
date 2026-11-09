@@ -869,16 +869,31 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--i
   background: color-mix(in srgb, var(--paper) 62%, transparent) !important; -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
   border-color: color-mix(in srgb, var(--ink) 14%, transparent) !important; }
 
+@media (min-width: 900px) {
+  /* computer: barra di navigazione e marchio in una pillola velata con il bordo, leggibili anche sopra le illustrazioni */
+  .top .nav { flex: 0 1 auto; padding: 4px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+    background: color-mix(in srgb, var(--paper) 62%, transparent); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); }
+  .top .nav button { color: var(--ink); }
+  .top .nav button.on { background: var(--arcane); color: var(--arcane-ink); }
+  .top .brand { padding: 6px 14px 6px 6px !important; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent) !important;
+    background: color-mix(in srgb, var(--paper) 62%, transparent) !important; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  .top h1 { display: block; visibility: hidden; flex: 1; }
+}
+
 /* ordinamento: un pulsante con il tipo (si apre il menu) e accanto il verso */
 .sortctl2 { display: inline-flex; align-items: center; gap: 6px; flex: none; }
 .sortsel { position: relative; display: inline-flex; align-items: center; min-height: 0; gap: 0; }
 .sortsel > svg { position: absolute; left: 11px; width: 17px; height: 17px; color: var(--ink-2); pointer-events: none; }
-.sortctl2 select { width: auto; min-height: 38px; padding: 0 32px 0 34px; border-radius: 12px; background-color: var(--sheet); border: 1px solid var(--line);
+.sortctl2 select { width: auto; max-width: 168px; text-overflow: ellipsis; min-height: 38px; padding: 0 32px 0 34px; border-radius: 12px; background-color: var(--sheet); border: 1px solid var(--line);
   font-weight: 600; font-size: 14.5px; color: var(--ink); cursor: pointer; }
 .sortctl2 select:hover { border-color: var(--field-line); }
 .sortctl2 .sortdir { width: 38px; min-height: 38px; border-radius: 12px; background: var(--sheet); border: 1px solid var(--line); }
 .sortctl2 .sortdir svg { width: 18px; height: 18px; }
 .chips > .sortctl2 { margin-left: auto; }
+/* riepilogo: il testo non si schiaccia mai, l'ordinamento va a capo se non c'è posto */
+.summary { flex-wrap: wrap; row-gap: 6px; }
+.summary > .g { flex: 1 1 180px; min-width: 0; }
+.summary > .sortctl2 { margin-left: auto; }
 .chips > .sortctl2 select { flex: none; }
 
 /* ---------- solo telefono: intestazione fusa con la pagina, barra in basso a icone ---------- */
