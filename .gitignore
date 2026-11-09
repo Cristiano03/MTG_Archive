@@ -1,0 +1,28 @@
+# dipendenze e file generati
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+
+# configurazione locale (indirizzi, chiavi, password): resta sul tuo computer, nel repository ci sono i .env.example
+.env
+.env.*
+!.env.example
+
+# dati locali: database del vecchio server sul Mac e backup automatici (contengono la tua collezione)
+backend/.data/
+
+# Firebase: cache e log del deploy
+.firebase/
+firebase-debug.log*
+firebase-debug.*.log
+
+# log, file di sistema e degli editor
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp

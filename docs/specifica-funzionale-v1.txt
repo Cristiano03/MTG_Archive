@@ -1,0 +1,450 @@
+SPECIFICA FUNZIONALE
+MTG COMMANDER COLLECTION MANAGER
+
+VERSIONE
+1.0
+
+OBIETTIVO DEL PROGETTO
+
+Realizzare un sito web personale per gestire una collezione fisica di carte di Magic: The Gathering e tutti i relativi mazzi Commander.
+
+Il sito deve essere utilizzabile principalmente da smartphone, ma anche da PC. Deve essere responsive e, preferibilmente, installabile come PWA.
+
+Non sono richiesti login, registrazione, account utente o gestione multiutente nella prima versione. I dati devono comunque essere salvati in modo persistente e protetti da accessi non autorizzati, soprattutto se il sito viene pubblicato su Internet.
+
+Il sistema deve permettere di:
+- Registrare tutte le carte possedute e le relative quantità.
+- Distinguere le diverse stampe, edizioni, lingue, finiture e condizioni.
+- Importare liste di carte tramite testo.
+- Riconoscere le carte tramite fotocamera.
+- Cercare e filtrare la collezione.
+- Creare e gestire mazzi Commander.
+- Controllare la legalità delle liste Commander.
+- Impedire che copie fisiche insufficienti vengano assegnate a più mazzi.
+- Sapere quali carte mancano per completare ogni mazzo.
+- Esportare e ripristinare i dati.
+
+PRINCIPI FONDAMENTALI
+
+Il catalogo delle carte, l'inventario fisico e le liste dei mazzi devono essere separati.
+
+Una carta può esistere nel catalogo senza essere posseduta. Una carta posseduta può essere libera o assegnata a un mazzo fisico. Una lista virtuale può contenere carte senza riservare copie fisiche.
+
+La validazione regolamentare di un mazzo e la disponibilità fisica delle carte devono essere controllate separatamente. Un mazzo può essere regolamentarmente valido ma non assemblabile perché mancano delle carte.
+
+1. NAVIGAZIONE E INTERFACCIA
+
+L'interfaccia deve essere progettata prioritariamente per smartphone, con pulsanti facilmente utilizzabili e navigazione semplice.
+
+Navigazione mobile:
+- Home: riepilogo della collezione e dei mazzi.
+- Collezione: inventario, ricerca e filtri.
+- Scansiona: apertura della fotocamera.
+- Mazzi: gestione delle liste Commander.
+- Altro: importazione, statistiche, esportazione e impostazioni.
+
+Su PC, la stessa struttura può essere adattata a una barra laterale, tabelle più ampie e pannelli di dettaglio.
+
+Il sito deve essere responsive e, preferibilmente, installabile come PWA. La scansione tramite fotocamera richiede HTTPS, salvo le eccezioni previste dagli ambienti di sviluppo locali.
+
+2. HOME E RIEPILOGO
+
+La schermata iniziale deve mostrare:
+- Numero totale di copie fisiche.
+- Numero di carte uniche e di stampe differenti.
+- Numero di mazzi Commander attivi.
+- Numero di mazzi validi e non validi.
+- Carte libere, assegnate e mancanti.
+- Ultime carte aggiunte.
+- Mazzi incompleti o con errori di validazione.
+- Data dell'ultimo aggiornamento della banlist.
+
+Gli elementi del riepilogo devono essere cliccabili per aprire la sezione corrispondente con i filtri già applicati.
+
+3. GESTIONE DELLA COLLEZIONE
+
+3.1 Inserimento manuale
+
+Deve essere possibile aggiungere una carta cercandola per nome, scegliendo la stampa corretta e indicando:
+- Quantità posseduta.
+- Edizione o set.
+- Lingua.
+- Finitura: normale, foil o altre finiture riconosciute dal catalogo.
+- Condizione della carta, secondo una scala configurabile.
+- Note facoltative.
+
+L'aggiunta di una carta già presente deve incrementare la quantità della stampa selezionata, senza creare record duplicati inutili.
+
+3.2 Distinzione tra carta e stampa
+
+Il sistema deve distinguere:
+- Carta: identità della carta nel gioco, ad esempio Sol Ring.
+- Stampa: una specifica versione pubblicata, con set, numero di collezione, illustrazione e altre caratteristiche.
+- Copia fisica: una copia effettivamente posseduta, con le proprie caratteristiche.
+
+Se vengono possedute copie di Sol Ring di edizioni differenti, il sito deve poterle rappresentare separatamente come stampe, ma considerarle come copie della stessa carta ai fini della regola singleton Commander.
+
+3.3 Quantità e disponibilità
+
+Per ogni carta e stampa devono essere visibili:
+- Possedute: copie fisiche registrate.
+- Assegnate: copie riservate ai mazzi fisici.
+- Libere: copie possedute meno copie assegnate.
+- Necessarie: copie richieste dalle liste che si desidera completare.
+- Mancanti: quantità necessaria non coperta dalle copie disponibili.
+
+Le copie mancanti non devono essere conteggiate come possedute.
+
+3.4 Ricerca e filtri
+
+La collezione deve supportare ricerca istantanea e filtri combinabili.
+
+Filtri richiesti:
+- Nome completo o parziale.
+- Colore: bianco, blu, nero, rosso, verde, incolore e multicolore.
+- Identità di colore.
+- Rarità: comune, non comune, rara, rara mitica.
+- Tipologia: creatura, artefatto, istantaneo, stregoneria, terra e altri tipi.
+- Espansione, codice set e numero di collezione.
+- Lingua, finitura e illustrazione.
+- Stato inventario: libere, assegnate, esaurite, quantità posseduta.
+- Mazzi in cui la carta è utilizzata.
+- Stato: possedute, mancanti o presenti nella lista dei desideri.
+
+Il filtro colore deve distinguere il colore della carta dall'identità di colore, perché quest'ultima determina la legalità in Commander.
+
+L'utente deve poter scegliere se includere carte che contengono almeno uno dei colori selezionati oppure soltanto carte che li contengono tutti.
+
+4. IMPORTAZIONE MASSIVA TESTUALE
+
+La funzione di importazione deve consentire di aggiungere molte carte con una sola operazione, incollando una lista di testo.
+
+Esempio:
+4 Sol Ring
+2 Arcane Signet
+1 Dark Ritual
+3 Counterspell
+1 Rhystic Study
+
+Comportamento richiesto:
+1. Analizzare le righe e interpretare quantità e nomi.
+2. Riconoscere i nomi delle carte utilizzando il catalogo.
+3. Gestire, quando possibile, nomi italiani e inglesi.
+4. Segnalare righe vuote, nomi non riconosciuti e risultati ambigui.
+5. Consentire la selezione della stampa corretta.
+6. Mostrare un'anteprima completa prima di salvare.
+7. Consentire di correggere le righe problematiche.
+8. Confermare l'intera operazione in blocco.
+
+L'importazione deve supportare almeno due modalità:
+
+IMPORTA NELLA COLLEZIONE
+Aggiunge le quantità indicate alle quantità già registrate. Deve essere chiaramente indicato che l'operazione incrementa l'inventario.
+
+IMPORTA IN UN MAZZO
+Interpreta il testo come una lista Commander, crea le voci della lista e calcola le carte mancanti. Le quantità rappresentano la composizione desiderata, non nuove copie fisiche.
+
+Deve essere possibile importare liste esportate da deck builder compatibili, compresi i formati comunemente utilizzati da Moxfield e Archidekt, quando supportati.
+
+Il sistema deve distinguere gli errori di riconoscimento dagli errori di legalità Commander. Una carta può essere riconosciuta correttamente ma risultare bandita o fuori identità di colore.
+
+5. RICONOSCIMENTO TRAMITE FOTOCAMERA
+
+Lo scanner deve essere accessibile direttamente dalla navigazione principale.
+
+5.1 Scansione singola
+
+1. Aprire la fotocamera posteriore.
+2. Inquadrare la carta.
+3. Rilevare e ritagliare la carta nell'immagine, se possibile.
+4. Riconoscere il nome tramite OCR e, se necessario, confronto visivo.
+5. Cercare la carta nel catalogo.
+6. Mostrare il risultato con immagine e possibili stampe alternative.
+7. Confermare l'inserimento.
+
+5.2 Scansione continua
+
+Deve essere disponibile una modalità che permetta di acquisire molte carte consecutive senza riaprire ogni volta la fotocamera.
+
+Funzioni richieste:
+- Conferma o correzione del riconoscimento.
+- Incremento della quantità per carte già registrate.
+- Possibilità di annullare l'ultima scansione.
+- Riepilogo delle carte acquisite.
+- Segnalazione dei risultati incerti.
+- Gestione delle stampe alternative.
+
+L'identificazione del nome e quella della stampa devono essere operazioni distinte. Riconoscere il nome non garantisce che sia stata identificata l'edizione esatta.
+
+La prima versione deve privilegiare l'affidabilità. È preferibile chiedere conferma piuttosto che aggiungere silenziosamente una carta sbagliata.
+
+6. GESTIONE DEI MAZZI COMMANDER
+
+Ogni mazzo deve contenere almeno:
+- Nome.
+- Comandante principale.
+- Eventuale secondo comandante o combinazione di comandanti.
+- Descrizione facoltativa.
+- Lista delle carte.
+- Stato del mazzo.
+- Modalità: fisico oppure virtuale.
+- Data di creazione e ultima modifica.
+
+Gli stati devono includere almeno: bozza, incompleto, valido e archiviato. La validità delle regole e la disponibilità fisica devono essere mostrate separatamente.
+
+6.1 Regole di costruzione Commander
+
+Il sito deve verificare automaticamente:
+1. Conteggio esatto di 100 carte complessive, comandante incluso.
+2. Regola singleton: massimo una copia di ogni carta con lo stesso nome, salvo eccezioni consentite.
+3. Validità del comandante o della combinazione di comandanti.
+4. Identità di colore: tutte le carte devono rispettare l'identità di colore del comandante o dei comandanti.
+5. Carte bandite: nessuna carta presente nella lista aggiornata delle carte vietate per il Commander ordinario.
+6. Eccezioni specifiche, comprese Partner, Background e altre meccaniche che consentono combinazioni particolari.
+7. Eccezioni al singleton, comprese carte che autorizzano espressamente a giocare qualsiasi numero di copie e le altre eccezioni previste dal regolamento.
+
+Il conteggio delle 100 carte deve includere tutti i componenti della lista, compresi i comandanti. Il sito non deve contare le carte della collezione che non sono inserite nel mazzo.
+
+Per il controllo dei duplicati deve essere utilizzata l'identità della carta, non quella della singola stampa. Due versioni differenti di Sol Ring costituiscono comunque due copie della stessa carta ai fini del singleton.
+
+Le terre base non sono l'unica eccezione al singleton. Il controllo deve utilizzare dati e regole ufficiali applicabili, evitando di dedurre le eccezioni esclusivamente dal tipo di carta.
+
+6.2 Validazione in tempo reale
+
+Ogni modifica alla lista deve aggiornare immediatamente:
+- Conteggio totale delle carte.
+- Numero di carte mancanti per arrivare a 100.
+- Eventuali duplicati illegali.
+- Eventuali carte fuori identità di colore.
+- Eventuali carte bandite.
+- Eventuali problemi relativi al comandante.
+- Disponibilità delle copie fisiche.
+- Numero di carte da acquistare.
+
+Il sito deve distinguere il conteggio della lista dalle copie mancanti. Una lista di 100 carte può essere completa come elenco ma non assemblabile fisicamente.
+
+6.3 Gestione dei comandanti
+
+Il comandante deve essere selezionabile dal catalogo e gestito separatamente nell'interfaccia, ma incluso nel conteggio delle 100 carte.
+
+Devono essere supportati:
+- Comandante singolo.
+- Coppia di comandanti consentita dalle regole.
+- Carte comandante selezionabili solo se soddisfano i requisiti previsti.
+- Controllo dell'identità di colore risultante dalla combinazione scelta.
+
+Il sito non deve presumere che qualsiasi creatura leggendaria possa essere comandante o che due creature leggendarie possano essere usate insieme.
+
+6.4 Carte mancanti e costruzione della lista
+
+Quando si aggiunge una carta a un mazzo fisico, il sistema deve confrontare la quantità richiesta con le copie disponibili.
+
+Se una carta non è disponibile, può essere inserita nella lista come mancante senza aumentare il numero di copie possedute.
+
+Il sito deve consentire di importare liste incomplete o non valide come bozze, così da poterle correggere senza perdere il lavoro svolto.
+
+7. ASSEGNAZIONE DELLE COPIE FISICHE
+
+Il sito deve impedire che copie fisiche insufficienti vengano utilizzate in più mazzi contemporaneamente.
+
+Formula:
+Copie libere = Copie possedute - Copie assegnate
+
+Il controllo deve essere applicato a tutte le stampe della stessa carta quando si verifica la legalità singleton, ma deve tenere conto della stampa specifica quando si assegna una copia fisica.
+
+La gestione deve consentire di:
+- Assegnare una copia a un mazzo.
+- Rimuovere una carta da un mazzo.
+- Spostare una carta tra due mazzi.
+- Cambiare la stampa assegnata.
+- Modificare le quantità possedute.
+- Segnalare una carta persa, venduta o ceduta.
+- Liberare tutte le copie di un mazzo archiviato.
+
+Ogni operazione deve aggiornare le disponibilità in modo coerente. Se una carta viene rimossa dalla collezione ma risulta assegnata, il sito deve chiedere come gestire l'assegnazione.
+
+Il controllo deve essere applicato nel database, non soltanto nell'interfaccia, per evitare errori anche in caso di richieste simultanee.
+
+8. MAZZI VIRTUALI
+
+I mazzi virtuali servono a provare liste teoriche e pianificare acquisti.
+
+Un mazzo virtuale:
+- Non riserva copie fisiche.
+- Non riduce la disponibilità della collezione.
+- Mostra le carte mancanti.
+- Può essere validato secondo le regole Commander.
+- Può essere convertito in mazzo fisico, assegnando solo le copie effettivamente disponibili.
+
+La conversione deve essere atomica. Se non ci sono abbastanza copie, il sito deve indicare cosa manca e non lasciare il mazzo in uno stato di assegnazione parziale non intenzionale.
+
+9. CATALOGO E AGGIORNAMENTO DELLE REGOLE
+
+Il sito deve utilizzare un catalogo affidabile per identificare carte, stampe, colori, rarità, tipi e testo delle carte.
+
+Per Magic: The Gathering è consigliabile utilizzare Scryfall come fonte iniziale.
+
+Il sistema deve memorizzare gli identificativi stabili delle carte e delle stampe, evitando di utilizzare il nome visualizzato come unica chiave identificativa.
+
+9.1 Aggiornamento della banlist
+
+La lista delle carte bandite deve essere aggiornata automaticamente, ove possibile, da una fonte ufficiale o affidabile.
+
+Sono richiesti:
+- Data dell'ultimo aggiornamento.
+- Fonte utilizzata.
+- Possibilità di aggiornamento manuale.
+- Segnalazione degli errori di sincronizzazione.
+- Indicazione visibile quando la verifica non è aggiornata.
+
+Se la banlist non è aggiornata, il sito non deve dichiarare con certezza che un mazzo sia legale.
+
+La validazione deve essere modulare: le regole Commander devono poter essere aggiornate senza riscrivere l'intero sistema.
+
+10. LISTA DEI DESIDERI E ACQUISTI
+
+Il sito deve prevedere una lista dei desideri separata dall'inventario.
+
+Deve essere possibile aggiungere carte manualmente o direttamente da un mazzo incompleto.
+
+Per ogni voce devono essere mostrati:
+- Quantità desiderata.
+- Quantità già posseduta e libera.
+- Quantità ancora da acquistare.
+- Note e priorità facoltative.
+- Prezzo di riferimento facoltativo, con fonte e data di aggiornamento.
+
+Le carte acquistate possono essere trasferite nella collezione tramite un'operazione guidata, senza duplicare erroneamente le quantità.
+
+11. STATISTICHE, ESPORTAZIONE E BACKUP
+
+11.1 Statistiche
+
+La sezione statistiche deve mostrare:
+- Distribuzione della collezione per colore e rarità.
+- Distribuzione per set e tipologia.
+- Quantità di carte libere e assegnate.
+- Numero di carte mancanti per ciascun mazzo.
+- Stima del valore complessivo della collezione, se è disponibile una fonte prezzi affidabile.
+
+Il valore deve essere indicato come stima, con data e valuta, non come prezzo di vendita garantito.
+
+11.2 Esportazione
+
+Devono essere disponibili:
+- CSV della collezione.
+- JSON completo per il backup.
+- Esportazione testuale delle liste Commander.
+- Esportazione delle carte mancanti.
+- Esportazione della lista dei desideri.
+
+11.3 Backup e ripristino
+
+Il sistema deve consentire di scaricare un backup completo e ripristinarlo successivamente.
+
+Il backup deve comprendere collezione, stampe registrate, mazzi, assegnazioni, liste dei desideri e impostazioni importanti.
+
+Prima di un ripristino deve essere mostrata un'anteprima delle modifiche. Il ripristino non deve creare duplicati o sovrascrivere dati senza conferma.
+
+12. SPECIFICHE TECNICHE E ARCHITETTURA
+
+Le tecnologie definitive potranno essere scelte durante lo sviluppo. L'architettura deve garantire persistenza dei dati, sincronizzazione tra dispositivi e controllo affidabile dell'inventario.
+
+Tecnologie proposte:
+- Frontend: React e TypeScript, oppure tecnologia equivalente.
+- Stile: Tailwind CSS o sistema equivalente.
+- Database: PostgreSQL o altro database relazionale affidabile.
+- Backend: API per inventario, mazzi, importazioni e validazione.
+- Catalogo: integrazione con Scryfall o fonte equivalente.
+- Scanner: API browser della fotocamera, OCR e confronto con il catalogo.
+- PWA: installazione facoltativa su telefono e PC.
+- Backup: esportazione e ripristino dei dati.
+- Autenticazione: non prevista nella prima versione.
+
+12.1 Modello dati minimo
+
+Il database deve comprendere almeno queste entità:
+- Cards: identità delle carte.
+- Printings: singole stampe ed edizioni.
+- CollectionItems: copie fisiche possedute e caratteristiche.
+- Decks: mazzi Commander.
+- DeckCards: carte richieste e quantità nelle liste.
+- DeckAssignments: assegnazioni effettive delle copie ai mazzi fisici.
+- Wishlist: carte desiderate.
+- Transactions: storico delle operazioni sull'inventario.
+- CatalogSync: stato dell'aggiornamento dei dati esterni e della banlist.
+
+La separazione tra DeckCards e DeckAssignments è essenziale: la prima rappresenta la composizione desiderata, la seconda le copie fisiche effettivamente riservate.
+
+Le operazioni che modificano le assegnazioni devono utilizzare transazioni del database e controlli di integrità per impedire sovrassegnazioni.
+
+13. SICUREZZA E AFFIDABILITÀ
+
+Non essendoci login, non è necessario sviluppare account e gestione delle password. Tuttavia, se il sito viene pubblicato su Internet, l'accesso deve essere limitato tramite protezione a livello di hosting, rete privata o sistema equivalente.
+
+Sono richiesti:
+- Nessuna esposizione pubblica del database.
+- Protezione delle API che modificano i dati.
+- Nessuna chiave segreta di servizi esterni nel codice frontend.
+- Backup periodici e possibilità di esportazione manuale.
+- Conferma prima di eliminare carte, mazzi o intere liste.
+- Gestione degli errori di rete e delle importazioni fallite.
+- Nessuna perdita di dati in caso di aggiornamento o riavvio del server.
+
+L'assenza di login applicativo non rende automaticamente privato un sito pubblico.
+
+14. CRITERI DI ACCETTAZIONE
+
+Il progetto può considerarsi pronto quando supera questi test:
+
+- Importazione di molte carte: le quantità sono elaborate correttamente.
+- Doppioni nella collezione: le quantità si sommano senza duplicare inutilmente i record.
+- Mazzo da 99 carte: segnalato come incompleto.
+- Mazzo da 100 carte: conteggio corretto, comandante incluso.
+- Mazzo da 101 carte: segnalato come non valido.
+- Duplicato illegale: il sito identifica il nome della carta e il conflitto.
+- Carta fuori identità di colore: segnalata come non valida.
+- Carta bandita: segnalata in base alla banlist disponibile.
+- Comandanti con combinazioni consentite: validazione secondo le regole applicabili.
+- Copia assegnata a un mazzo: non può essere assegnata a un altro mazzo fisico se non ci sono altre copie disponibili.
+- Rimozione di una carta dal mazzo: la copia torna disponibile.
+- Mazzo virtuale: non riserva le copie fisiche.
+- Conversione virtuale in fisico: verifica la disponibilità prima di assegnare le copie.
+- Scansione di una carta: consente di verificare il risultato prima dell'inserimento.
+- Filtri combinati: restituiscono risultati coerenti.
+- Backup e ripristino: mantengono collezione, mazzi e assegnazioni.
+
+15. ORDINE DI SVILUPPO
+
+FASE 1 - CATALOGO E COLLEZIONE
+Ricerca carte, inserimento manuale, quantità, stampe, filtri e importazione testuale.
+
+FASE 2 - MAZZI E INVENTARIO FISICO
+Creazione mazzi, copie assegnate, liste mancanti, modalità fisica e virtuale.
+
+FASE 3 - VALIDAZIONE COMMANDER
+100 carte, singleton, identità di colore, comandanti, eccezioni e banlist.
+
+FASE 4 - SCANNER
+Riconoscimento tramite fotocamera, conferma delle stampe e scansione continua.
+
+FASE 5 - RIFINITURA
+PWA, statistiche, lista dei desideri, backup, ripristino e test su dispositivi diversi.
+
+16. FUNZIONALITÀ ESCLUSE DALLA PRIMA VERSIONE
+
+Non sono necessari inizialmente:
+- Login, registrazione e gestione di altri utenti.
+- Condivisione pubblica dei mazzi.
+- Marketplace o acquisto diretto di carte.
+- Gestione di formati diversi da Commander.
+- Riconoscimento automatico senza conferma in ogni circostanza.
+- Funzioni social o classifiche.
+
+Queste funzioni potranno essere aggiunte successivamente senza compromettere l'architettura principale.
+
+RISULTATO ATTESO
+
+Un unico sito personale che rappresenti fedelmente la collezione fisica e i mazzi Commander, permetta di importare o scansionare carte rapidamente, segnali automaticamente gli errori regolamentari e impedisca di assegnare più copie di quelle realmente possedute.
+
+La priorità assoluta deve essere la correttezza dell'inventario e della validazione Commander. Lo scanner deve essere costruito sopra una gestione delle carte già affidabile.

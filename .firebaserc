@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "mtg-commander-f1eb3"
+  },
+  "targets": {
+    "mtg-commander-f1eb3": {
+      "hosting": {
+        "archive": [
+          "mtg-commander-archive"
+        ],
+        "vecchio": [
+          "mtg-commander-f1eb3"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

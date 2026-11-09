@@ -1,0 +1,20 @@
+{
+  "name": "mtg-commander-manager",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w frontend",
+    "build": "npm run build -w frontend",
+    "typecheck": "npm run build -w frontend",
+    "test": "tsx tests/supabase-schema.ts",
+    "test:web": "tsx tests/routes.ts",
+    "test:scanner": "tsx tests/scanner-recognize.ts",
+    "firebase": "npx -y firebase-tools@15.34.1",
+    "deploy": "npx -y firebase-tools@15.34.1 deploy --only hosting",
+    "anteprima": "tsx tests/anteprima.ts"
+  }
+}
