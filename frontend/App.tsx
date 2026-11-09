@@ -11,6 +11,7 @@ import Toaster from './components/Toast';
 import ScannerPage from './pages/ScannerPage';
 import AuthPage from './pages/AuthPage';
 import Privacy from './pages/PrivacyPage';
+import Sheet from './components/Sheet';
 import { supabase, configured } from './services/supabase';
 import { DEMO } from './services/api';
 
@@ -23,7 +24,7 @@ const TABS: { k: Tab; label: string; icon: string; mobile?: boolean }[] = [
   { k: 'w', label: 'Desideri', icon: 'heart' },
 ];
 const SUB: Tab[] = ['i', 'u', 'p']; // pagine che si aprono da un pulsante, con la freccia per tornare indietro
-const TITLE: Record<Tab, string> = { h: 'MTG Commander Archive', c: 'Collezione', s: 'Scansiona', d: 'Mazzi', w: 'Lista dei desideri', i: 'Importa una lista', u: 'Account', p: 'Privacy' };
+const TITLE: Record<Tab, string> = { h: 'Commander Archive', c: 'Collezione', s: 'Scansiona', d: 'Mazzi', w: 'Lista dei desideri', i: 'Importa una lista', u: 'Account', p: 'Privacy' };
 
 export default function App() {
   // undefined = verifica in corso, null = non collegato
@@ -57,13 +58,17 @@ function Main({ email, onLogout }: { email: string; onLogout: () => void }) {
   const [wide, setWide] = useState(() => matchMedia('(min-width: 900px)').matches);
   useEffect(() => { const m = matchMedia('(min-width: 900px)'), h = () => setWide(m.matches); m.addEventListener('change', h); return () => m.removeEventListener('change', h); }, []);
   useEffect(() => { if (wide && tab === 's') setTab('h'); }, [wide, tab]);
-  const sub = SUB.includes(tab);
+  const sub = SUB.includes(tab), [adding, setAdding] = useState(false);
+  // "+" in alto nella Home (telefono): tutti i modi di inserire carte e mazzi in un pannello
+  const ADD: [string, string, string, () => void][] = [['scan', 'Scansiona', 'Con la fotocamera', () => go('s')], ['search', 'Cerca carta', 'Per nome o set', () => go('c', 'add')],
+    ['text', 'Importa lista', 'Testo o file', () => go('i')], ['decks', 'Nuovo mazzo', 'Scegli un comandante', () => go('d', 'new')]];
   return <div className="shell">
-    <header className="top">
+    <header className={"top t-" + tab}>
       <button className="brand" onClick={() => go('h')}><img src="/icons/icon-192.png" alt="" />MTG Commander Archive</button>
       <nav className="nav" aria-label="Sezioni">{TABS.map(t => <button key={t.k} className={(tab === t.k ? 'on ' : '') + (t.mobile ? 'mobile-only' : '')} aria-current={tab === t.k ? 'page' : undefined} onClick={() => go(t.k)}><Icon name={t.icon} />{t.label}</button>)}</nav>
       {sub && <button className="icon ghost" aria-label="Indietro" onClick={() => go(prev)}><Icon name="back" /></button>}
       <h1>{TITLE[tab]}</h1>
+      {tab === 'h' && <button className="icon m-only" aria-label="Aggiungi" onClick={() => setAdding(true)}><Icon name="plus" /></button>}
       <button className={'icon ghost' + (tab === 'u' ? ' on' : '')} aria-label="Account" title={email} onClick={() => go('u')}><Icon name="user" /></button>
     </header>
     <main className="page" key={tab + round}>
@@ -71,8 +76,11 @@ function Main({ email, onLogout }: { email: string; onLogout: () => void }) {
         : tab === 'w' ? <Wishlist /> : tab === 'i' ? <ImportPage /> : tab === 'u' ? <Account email={email} onLogout={onLogout} go={go} /> : tab === 'p' ? <div className="card"><Privacy /></div> : <ScannerPage />}
     </main>
     <nav className="tabbar" aria-label="Sezioni">
-      {TABS.map(t => <button key={t.k} className={(tab === t.k ? 'on ' : '') + (t.k === 's' ? 'scan' : '')} aria-current={tab === t.k ? 'page' : undefined} onClick={() => go(t.k)}><Icon name={t.icon} />{t.label}</button>)}
+      {TABS.map(t => <button key={t.k} className={(tab === t.k ? 'on ' : '') + (t.k === 's' ? 'scan' : '')} aria-current={tab === t.k ? 'page' : undefined} aria-label={t.label} onClick={() => go(t.k)}><Icon name={t.icon} /><span className="tl">{t.label}</span></button>)}
     </nav>
+    {adding && <Sheet title="Aggiungi" sub="Come vuoi inserire le carte?" onClose={() => setAdding(false)}>
+      <div className="addgrid">{ADD.map(([icon, l, sub], i) => <button key={l} className={i === 0 ? 'on' : ''} onClick={() => { setAdding(false); ADD[i][3](); }}>
+        <Icon name={icon} /><b>{l}</b><small>{sub}</small></button>)}</div></Sheet>}
     <Toaster />
   </div>;
 }

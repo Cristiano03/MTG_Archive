@@ -30,8 +30,8 @@ export default function HomePage({ go }: { go: Go }) {
     <div className="home"><div>
       <div className="hero">
         <div className="lbl">Valore della collezione</div>
-        <div className="row"><div className="big">{pricing && !v?.oldest ? '…' : eur(v?.eur ?? 0)}</div>
-          <button className="small" style={{ marginLeft: 'auto' }} disabled={pricing} onClick={() => prices(true)}><Icon name="refresh" />{pricing ? 'Aggiorno…' : 'Aggiorna'}</button></div>
+        <div className="row"><div className="big">{pricing && !v?.oldest ? '…' : <>{eur(v?.eur ?? 0).replace(/\s?€$/, '')}<span className="cur"> €</span></>}</div>
+          <button className="small" style={{ marginLeft: 'auto' }} disabled={pricing} aria-label="Aggiorna i prezzi" onClick={() => prices(true)}><Icon name="refresh" /><span className="d-only">{pricing ? 'Aggiorno…' : 'Aggiorna'}</span></button></div>
         <div className="sub">{s.copies} copie · prezzi Cardmarket in euro{v?.oldest ? ` del ${new Date(v.oldest).toLocaleDateString('it')}` : ''}{v?.unpriced ? ` · ${v.unpriced} senza prezzo` : ''}</div>
       </div>
 
@@ -64,7 +64,7 @@ export default function HomePage({ go }: { go: Go }) {
     </div><div>
 
       <div className="sec"><h3>Lista dei desideri</h3></div>
-      <div className="list"><button className="item" onClick={() => go('w')}><Icon name="heart" />
+      <div className="list"><button className="item" onClick={() => go('w')}><span className="roundico"><Icon name="heart" /></span>
         <div className="g"><div className="name">{!wish ? '…' : !wish.length ? 'Lista vuota' : `${wishN} ${wishN === 1 ? 'copia' : 'copie'} da comprare`}</div>
           <div className="meta">{wishCost > 0 ? <span>circa {eur(wishCost)}</span> : <span>Aggiungi le carte che cerchi</span>}</div></div><Icon name="next" /></button></div>
 

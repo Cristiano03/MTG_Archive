@@ -33,7 +33,8 @@ export default function DeckList({ creating: startCreating, go }: { creating?: b
   const remove = (d: Any) => { if (confirm(`Eliminare “${d.name}”?${d.mode === 'physical' ? ' Le copie tornano libere in collezione.' : ''} Non si può annullare.`)) run(() => api('/decks/' + d.id, 'DELETE')); };
   const Deck = (d: Any) => {
     const miss = d.mode === 'physical' ? Math.max(0, d.cards - d.assigned) : 0;
-    return <div className="deck" key={d.id} role="button" tabIndex={0} onClick={() => openDeck(Number(d.id))} onKeyDown={e => e.key === 'Enter' && openDeck(Number(d.id))}>
+    const cs = ['W', 'U', 'B', 'R', 'G'].filter(c => d.ci?.includes(c)), glow = (cs.length ? cs : ['C']).map(c => `var(--mana-${c.toLowerCase()})`);
+    return <div className="deck" key={d.id} style={{ '--glow': glow.length === 1 ? glow[0] + ', ' + glow[0] : glow.join(', ') } as React.CSSProperties} role="button" tabIndex={0} onClick={() => openDeck(Number(d.id))} onKeyDown={e => e.key === 'Enter' && openDeck(Number(d.id))}>
       <Spine ci={d.ci} />
       <div style={{ paddingRight: 40 }}><h4>{d.name}</h4>
         <div className="meta"><Pips ci={d.ci} /><span>{d.commanders || 'Senza comandante'}</span></div></div>

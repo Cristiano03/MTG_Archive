@@ -124,7 +124,7 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
           <input type="search" enterKeyHint="search" autoCapitalize="off" autoCorrect="off" spellCheck={false} autoFocus={preset === 'add' || (wide() && !preset)}
             placeholder="Cerca carte" aria-label="Cerca nella collezione o aggiungi una carta" value={q} onChange={e => setQ(e.target.value)} />
           {q && <button className="clear" aria-label="Cancella la ricerca" onClick={() => setQ('')}><Icon name="close" /></button>}</div>
-        <button className={'icon' + (active ? ' soft' : '')} aria-label={`Filtri${active ? ` (${active} attivi)` : ''}`} title="Filtri" onClick={() => setShowF(true)}><Icon name="filter" /></button>
+        <button className={'icon' + (active ? ' soft' : '')} aria-label={`Filtri${active ? ` (${active} attivi)` : ''}`} title="Filtri" onClick={() => setShowF(true)}><Icon name="filter" />{active + (color.col.length ? 1 : 0) > 0 && <span className="badge dot m-only">{active + (color.col.length ? 1 : 0)}</span>}</button>
         <button className={'icon' + (sel ? ' soft' : '')} aria-label="Seleziona più carte" title="Seleziona" aria-pressed={!!sel} disabled={!items.length} onClick={() => { setSel(sel ? null : new Set()); setEdit(null); }}><Icon name="select" /></button>
         <Menu label="Altro" items={[
           { icon: 'text', label: 'Importa una lista', sub: 'Incolla un elenco di carte (anche da Moxfield)', onClick: () => go('i') },
@@ -135,20 +135,21 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
       </div>
       <div className="row chips">
         <ManaToggles value={color} onChange={setColor} />
-        <span className="vsep" />
-        <SortChip value={sort} onChange={setSort} keys={[...SORTS]} />
+        <span className="vsep d-only" />
+        <span className="d-only sortwrap"><SortChip value={sort} onChange={setSort} keys={[...SORTS]} /></span>
       </div>
     </div>
 
     {sel && <div className="selinfo">{sel.size} {sel.size === 1 ? 'selezionata' : 'selezionate'}
       <button onClick={() => setSel(allShown ? new Set() : new Set(shown.map(i => i.id)))}>{allShown ? 'Nessuna' : 'Tutte quelle mostrate'}</button></div>}
-    {loaded && items.length > 0 && <p className="m" style={{ margin: '6px 2px', fontSize: 14 }}>
+    {loaded && items.length > 0 && <p className="m summary" style={{ margin: '6px 2px', fontSize: 14 }}><span className="g">
       {shown.length} {shown.length === 1 ? 'stampa' : 'stampe'} · {copies} {copies === 1 ? 'copia' : 'copie'}
       {f.st === 'free' ? ` (${freeN} ${freeN === 1 ? 'libera' : 'libere'})` : f.st === 'asg' ? ` (${asgN} nei mazzi)` : ''}{shownValue > 0 && ` · ${eur(shownValue)}`}
-      {(active > 0 || color.col.length > 0) && <> · <button className="ghost small" style={{ padding: 0, minHeight: 0 }} onClick={() => { setF(EMPTY); setColor(NO_COLOR); }}>azzera filtri</button></>}</p>}
+      {(active > 0 || color.col.length > 0) && <> · <button className="ghost small" style={{ padding: 0, minHeight: 0 }} onClick={() => { setF(EMPTY); setColor(NO_COLOR); }}>azzera filtri</button></>}</span>
+      <span className="m-only sortlink"><Icon name="sortdown" /><SortChip value={sort} onChange={setSort} keys={[...SORTS]} /></span></p>}
     {sort.key === 'cmc' && items.length > 0 && items.every(i => i.cmc == null) && <p className="wa" style={{ margin: '4px 2px 8px' }}>Il costo di mana non è ancora disponibile: si scarica con «Aggiorna la banlist» nella pagina Mazzi.</p>}
 
-    {shown.length > 0 && <div className="list grid2">{shown.map(i => <Fragment key={i.id}>
+    {shown.length > 0 && <div className="list grid2 flat">{shown.map(i => <Fragment key={i.id}>
       <div className={'item tap' + (sel?.has(i.id) ? ' selected' : '') + (edit === i.id ? ' open' : '')} onClick={() => sel ? toggle(i.id) : open(i)} aria-pressed={sel ? sel.has(i.id) : undefined}>
         {sel && <Check on={sel.has(i.id)} />}
         <img className="thumb" alt="" loading="lazy" src={i.image_small} {...bind(i.image_small)} />
@@ -156,8 +157,9 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
           <div className="meta">{i.mana_cost ? <ManaCost cost={i.mana_cost} /> : <Pips ci={i.color_identity} />}<span>{i.set_code.toUpperCase()} {i.collector_number}</span>
             {i.finish !== 'nonfoil' && <span className="wa">{FIN_IT[i.finish]}</span>}{i.lang !== 'en' && <span>{i.lang}</span>}</div>
           <div className="meta">{i.assigned > 0 ? <span>{i.free} {i.free === 1 ? 'libera' : 'libere'} · {i.assigned} nei mazzi</span> : <span>tutte libere</span>}
-            {i.price != null && <span className="price">{eur(i.price)}{i.qty > 1 && <span className="m" style={{ fontWeight: 400 }}> · {eur(i.price * i.qty)}</span>}</span>}</div></div>
-        {sel ? <span className="num" style={{ fontSize: 22 }}>×{i.qty}</span> : <Stepper value={i.qty} onMinus={() => chg(i, -1)} onPlus={() => chg(i, 1)} label={'Copie di ' + i.name} />}</div>
+            {i.price != null && <span className="price d-only">{eur(i.price)}{i.qty > 1 && <span className="m" style={{ fontWeight: 400 }}> · {eur(i.price * i.qty)}</span>}</span>}</div></div>
+        <div className="side-r">{i.price != null && <span className="price m-only">{eur(i.price)}</span>}
+          {sel ? <span className="num" style={{ fontSize: 22 }}>×{i.qty}</span> : <Stepper value={i.qty} onMinus={() => chg(i, -1)} onPlus={() => chg(i, 1)} label={'Copie di ' + i.name} />}</div></div>
       {edit === i.id && !sel && <div className="itemx">
         <div className="filters" style={{ marginTop: 6 }}>
           <label className="field">Finitura<select value={draft.finish} onChange={e => setDraft({ ...draft, finish: e.target.value })}>{FIN.map(x => <option key={x} value={x}>{FIN_IT[x]}</option>)}</select></label>
