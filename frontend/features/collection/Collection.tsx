@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useWide } from '../../components/useWide';
 import CardDetail from '../card/CardDetail';
 import FilterSheet from './FilterSheet';
+import { usePricesUpdated } from '../../services/autoRefresh';
 import { api, download, fail } from '../../services/api';
 import Search from '../../components/Search';
 import Icon from '../../components/Icon';
@@ -49,7 +50,9 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
   const load = useCallback(() => api('/collection').then(x => { setItems(x); setLoaded(true); return x; }).catch(fail), []);
   const loadDecks = () => api('/decks').then(setDecks).catch(() => {});
   // prezzi mancanti o più vecchi di 20 ore: si aggiornano da soli una volta, poi si ricarica l'elenco
-  useEffect(() => { load().then(x => { if (x?.some((i: Any) => !i.price_at || Date.now() - new Date(i.price_at).getTime() > 20 * 3600e3)) api('/prices/collection', 'POST', {}).then(load).catch(() => {}); }); loadDecks(); }, [load]);
+  // i prezzi si aggiornano da soli all'apertura del sito (services/autoRefresh): qui si ricarica l'elenco quando hanno finito
+  useEffect(() => { load(); loadDecks(); }, [load]);
+  usePricesUpdated(load);
 
   const active = (color.col.length && color.by === 'identity' ? 1 : 0) + (f.rar ? 1 : 0) + (f.st ? 1 : 0) + (f.deck ? 1 : 0) + (f.min || f.max ? 1 : 0);
   // filtri attivi come li conta il pannello del telefono (colori compresi)
@@ -125,7 +128,6 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
     } catch (e) { fail(e); }
     setBusyPrint(false);
   };
-  const refreshPrices = async () => { try { const r = await api('/prices/collection', 'POST', { force: true }); toast(`Prezzi aggiornati (${r.updated})`); load(); } catch (e) { fail(e); } };
   const allShown = sel && shown.length > 0 && shown.every(i => sel.has(i.id));
 
   return <>
@@ -140,7 +142,6 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
         <Menu label="Altro" className="icon d-only" items={[
           { icon: 'text', label: 'Importa una lista', sub: 'Incolla un elenco di carte (anche da Moxfield)', onClick: () => go('i') },
           { icon: 'scan', label: 'Scansiona le carte', hidden: wide(), onClick: () => go('s') },
-          { icon: 'refresh', label: 'Aggiorna i prezzi', sub: 'Cardmarket, in euro', onClick: refreshPrices },
           { icon: 'download', label: 'Esporta la collezione (CSV)', onClick: () => download('/export/collection.csv') },
         ]}><Icon name="dots" /></Menu>
       </div>
@@ -158,12 +159,11 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
       {f.st === 'free' ? ` (${freeN} ${freeN === 1 ? 'libera' : 'libere'})` : f.st === 'asg' ? ` (${asgN} nei mazzi)` : ''}{shownValue > 0 && ` · ${eur(shownValue)}`}
       {(active > 0 || color.col.length > 0) && <> · <button className="ghost small" style={{ padding: 0, minHeight: 0 }} onClick={() => { setF(EMPTY); setColor(NO_COLOR); }}>azzera filtri</button></>}</span>
       <span className="m-only sortlink"><Icon name="sortdown" /><SortChip value={sort} onChange={setSort} keys={[...SORTS]} /></span></p>}
-    {sort.key === 'cmc' && items.length > 0 && items.every(i => i.cmc == null) && <p className="wa" style={{ margin: '4px 2px 8px' }}>Il costo di mana non è ancora disponibile: si scarica con «Aggiorna la banlist» nella pagina Mazzi.</p>}
+    {sort.key === 'cmc' && items.length > 0 && items.every(i => i.cmc == null) && <p className="wa" style={{ margin: '4px 2px 8px' }}>Il costo di mana non è ancora disponibile: si scarica da solo insieme alla banlist, alla prossima apertura del sito.</p>}
 
     {!isWide && slot && createPortal(<>
       <button className={'icon sq' + (view === 'grid' ? ' on' : '')} aria-label={view === 'grid' ? 'Vista a elenco' : 'Vista a griglia'} aria-pressed={view === 'grid'} onClick={() => setView(view === 'grid' ? 'list' : 'grid')}><Icon name={view === 'grid' ? 'list' : 'grid'} /></button>
       <Menu label="Altro" className="icon sq" items={[
-        { icon: 'refresh', label: 'Aggiorna i prezzi', sub: 'Cardmarket, in euro', onClick: refreshPrices },
         { icon: 'download', label: 'Esporta collezione', sub: 'File CSV, compatibile con Moxfield', onClick: () => download('/export/collection.csv') },
         { icon: 'check', label: 'Seleziona più carte', sub: 'Aggiungi a un mazzo, cambia stampa o elimina in blocco', onClick: () => { setSel(sel ? null : new Set()); setEdit(null); } },
         { icon: 'text', label: 'Importa una lista', sub: 'Incolla un elenco di carte (anche da Moxfield)', onClick: () => go('i') },

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePricesUpdated } from '../services/autoRefresh';
 import { api } from '../services/api';
 import { sfCollection } from '../services/scryfall';
 import type { Go } from './tabs';
@@ -11,11 +12,12 @@ const COLS = ['W', 'U', 'B', 'R', 'G', 'C'];
 const ago = (d: string) => { const n = Math.floor((Date.now() - new Date(d).getTime()) / 864e5); return n <= 0 ? 'aggiunta oggi' : n === 1 ? 'ieri' : n < 30 ? `${n} giorni fa` : new Date(d).toLocaleDateString('it'); };
 
 // Home del telefono: valore, carte in evidenza (i comandanti dei mazzi), cosa sistemare, identità di colore, mazzi, desideri, ultime aggiunte.
-export default function HomeMobile({ s, wish, pricing, onRefresh, go }: { s: Any; wish: Any[] | null; pricing: boolean; onRefresh: () => void; go: Go }) {
+export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any[] | null; pricing: boolean; go: Go }) {
   const [items, setItems] = useState<Any[]>([]), [decks, setDecks] = useState<Any[]>([]), [feat, setFeat] = useState<Any[]>([]), [k, setK] = useState(0);
   const [col, setCol] = useState<string | null>(null), [card, setCard] = useState<Any | null>(null), [peek, setPeek] = useState<Any | null>(null);
   const load = () => Promise.all([api('/collection').then(setItems), api('/decks').then(setDecks)]).catch(() => {});
   useEffect(() => { load(); }, []);
+  usePricesUpdated(useCallback(() => { load(); }, []));
 
   // in evidenza: i comandanti dei mazzi attivi (al massimo 3); senza mazzi, le carte di valore più alto
   useEffect(() => {
@@ -41,8 +43,7 @@ export default function HomeMobile({ s, wish, pricing, onRefresh, go }: { s: Any
   return <div className="mhome">
     <section className="mvalue">
       <div className="lbl">Valore della collezione</div>
-      <div className="row"><div className="big">{pricing && !v?.oldest ? '…' : <>{eur(v?.eur ?? 0).replace(/\s?€$/, '')}<span className="cur"> €</span></>}</div>
-        <button className="icon sq" aria-label="Aggiorna prezzi e banlist" disabled={pricing} onClick={onRefresh}><Icon name="refresh" /></button></div>
+      <div className="row"><div className="big">{pricing && !v?.oldest ? '…' : <>{eur(v?.eur ?? 0).replace(/\s?€$/, '')}<span className="cur"> €</span></>}</div></div>
       <div className="sub">{s.copies} copie{v?.unpriced ? ` · ${v.unpriced} senza prezzo` : ''}</div>
       <div className={'sub2' + (stale ? ' wa' : '')}>{date ? `Prezzi Cardmarket e banlist del ${date}` : 'Prezzi Cardmarket non ancora scaricati'}{stale ? ' · banlist da aggiornare' : ''}</div>
     </section>

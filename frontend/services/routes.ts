@@ -146,9 +146,9 @@ const R: [string, string, (c: Ctx) => Promise<Any>][] = [
   ['POST', '/prices/collection', async ({ body: b }) => {
     const ids: string[] = []; // a pagine: Supabase restituisce al massimo 1000 righe per volta
     for (let from = 0; ; from += 1000) { const r = rows(await supabase.from('collection_items').select('printing_id').order('id').range(from, from + 999)); ids.push(...r.map((x: Any) => x.printing_id)); if (r.length < 1000) break; }
-    return refreshPrintingPrices(ids, b?.force ? 0 : 20);
+    return refreshPrintingPrices(ids, b?.force ? 0 : b?.maxAgeH ?? 20);
   }],
-  ['POST', '/prices/deck/:id', async ({ p, body: b }) => refreshPrintingPrices((await rpc('deck_get', { p_id: int(p[0]) })).rows.map((r: Any) => r.printing_id), b?.force ? 0 : 20)],
+  ['POST', '/prices/deck/:id', async ({ p, body: b }) => refreshPrintingPrices((await rpc('deck_get', { p_id: int(p[0]) })).rows.map((r: Any) => r.printing_id), b?.force ? 0 : b?.maxAgeH ?? 20)],
   ['GET', '/export/collection.csv', async () => {
     const cell = (x: Any) => '"' + String(x ?? '').replace(/"/g, '""') + '"', r = await rpc('collection_list');
     return file('collezione.csv', 'text/csv', '﻿' + ['nome,set,numero,qta,assegnate,libere,lingua,finitura,condizione',

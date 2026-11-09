@@ -11,6 +11,7 @@ import { useCardPreview } from '../../components/CardPreview';
 import { eur } from '../../components/Price';
 import { useWide } from '../../components/useWide';
 import CardDetail, { idFromImage } from '../card/CardDetail';
+import { usePricesUpdated } from '../../services/autoRefresh';
 type Any = any;
 const PRIO: [string, string][] = [['', 'Nessuna'], ['1', 'Alta'], ['2', 'Media'], ['3', 'Bassa']];
 
@@ -25,6 +26,7 @@ export default function Wishlist() {
   const isWide = useWide(), [det, setDet] = useState<number | null>(null);
   const load = useCallback(() => api('/wishlist').then(x => { setRows(x); setLoaded(true); }).catch(fail), []);
   useEffect(() => { load(); }, [load]);
+  usePricesUpdated(load);
   const act = async (f: () => Promise<unknown>) => { try { await f(); } catch (e) { fail(e); } load(); };
   const patch = (r: Any, p: Any) => act(() => api('/wishlist/' + r.id, 'PATCH', p));
   const remove = (r: Any) => confirm(`Togliere ${r.name} dalla lista?`) && act(async () => { await api('/wishlist/' + r.id, 'DELETE'); setOpen(null); toast(`${r.name} tolta dalla lista`); });
@@ -36,7 +38,6 @@ export default function Wishlist() {
     toast(`${choosing.name} nella lista${p ? ` (${p.set.toUpperCase()} ${p.collector_number})` : ''}`); setChoosing(null); setBusy(false);
   };
   const setPrint = (r: Any, p: Any | null) => act(async () => { await api(`/wishlist/${r.id}/printing`, 'POST', { printing_id: p?.id ?? null }); setMode(null); });
-  const prices = () => act(async () => { const r = await api('/wishlist/prices', 'POST'); toast(`Prezzi aggiornati per ${r.updated} carte`); });
   const toBuy = rows.reduce((t, r) => t + r.to_buy, 0), cost = rows.reduce((t, r) => t + (r.price_ref ? r.to_buy * Number(r.price_ref) : 0), 0);
   const toggle = (r: Any) => { if (!isWide) { setDet(r.id); setMode(null); return; } setOpen(open === r.id ? null : r.id); setMode(null); };
 
@@ -46,7 +47,6 @@ export default function Wishlist() {
         <input type="search" enterKeyHint="search" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="Aggiungi una carta alla lista" aria-label="Cerca una carta da aggiungere alla lista" value={q} onChange={e => setQ(e.target.value)} />
         {q && <button className="clear" aria-label="Cancella la ricerca" onClick={() => setQ('')}><Icon name="close" /></button>}</div>
         <Menu label="Altro" items={[
-          { icon: 'refresh', label: 'Aggiorna i prezzi', sub: 'Cardmarket, in euro', onClick: prices },
           { icon: 'download', label: 'Esporta la lista', sub: 'Testo: “2 Sol Ring”', onClick: () => download('/export/wishlist.txt') },
         ]}><Icon name="dots" /></Menu></div>
     </div>

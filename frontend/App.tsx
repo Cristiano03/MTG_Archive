@@ -14,6 +14,7 @@ import Privacy from './pages/PrivacyPage';
 import Sheet from './components/Sheet';
 import { supabase, configured } from './services/supabase';
 import { DEMO } from './services/api';
+import { refreshOnOpen } from './services/autoRefresh';
 
 // navigazione: in basso sul telefono (Scansiona al centro, solo lì c'è la fotocamera), in alto sul computer
 const TABS: { k: Tab; label: string; icon: string; mobile?: boolean }[] = [
@@ -58,6 +59,8 @@ function Main({ email, onLogout }: { email: string; onLogout: () => void }) {
   const [wide, setWide] = useState(() => matchMedia('(min-width: 900px)').matches);
   useEffect(() => { const m = matchMedia('(min-width: 900px)'), h = () => setWide(m.matches); m.addEventListener('change', h); return () => m.removeEventListener('change', h); }, []);
   useEffect(() => { if (wide && tab === 's') setTab('h'); }, [wide, tab]);
+  // prezzi e banlist si aggiornano da soli a ogni apertura del sito
+  useEffect(() => { refreshOnOpen(); }, []);
   const sub = SUB.includes(tab), [adding, setAdding] = useState(false);
   // "+" in alto nella Home (telefono): tutti i modi di inserire carte e mazzi in un pannello
   const ADD: [string, string, string, () => void][] = [['scan', 'Scansiona', 'Con la fotocamera', () => go('s')], ['search', 'Cerca carta', 'Per nome o set', () => go('c', 'add')],

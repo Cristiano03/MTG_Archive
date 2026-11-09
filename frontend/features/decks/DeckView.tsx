@@ -17,6 +17,7 @@ import Menu from '../../components/Menu';
 import type { Go } from '../../pages/tabs';
 import { useWide } from '../../components/useWide';
 import CardDetail from '../card/CardDetail';
+import { refreshDeckOnce, usePricesUpdated } from '../../services/autoRefresh';
 type Any = any;
 // gruppi per tipo, come nei deckbuilder (una creatura artefatto sta tra le creature)
 const GROUPS: [string, RegExp][] = [['Creature', /Creature/], ['Planeswalker', /Planeswalker/], ['Battaglie', /Battle/], ['Terre', /Land/],
@@ -36,9 +37,10 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
   const toggle = (k: string) => setSel(cur => { const n = new Set(cur); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const load = useCallback(async () => { try { const [a, b] = await Promise.all([api('/decks/' + id), api(`/decks/${id}/validation`)]); setD(a); setV(b); return a; } catch (e) { fail(e); } }, [id]);
   // prezzi delle carte del mazzo: si aggiornano da soli se mancano o hanno più di 20 ore, poi si ricalcola il valore
+  // prezzi delle carte del mazzo: si aggiornano da soli la prima volta che il mazzo si apre (per ogni apertura del sito)
   const [pricing, setPricing] = useState(false);
-  const prices = useCallback(async (force: boolean) => { setPricing(true); try { await api(`/prices/deck/${id}`, 'POST', { force }); await load(); } catch (e) { if (force) fail(e); } setPricing(false); }, [id, load]);
-  useEffect(() => { load().then(a => { if (a?.cards.length && stalePrices(a.value)) prices(false); }); }, [load, prices]);
+  useEffect(() => { load().then(a => { if (a?.cards.length) { setPricing(!a.value?.oldest); refreshDeckOnce(id).then(ch => { setPricing(false); if (ch) load(); }); } }); }, [load, id]);
+  usePricesUpdated(load);
   const act = async (f: () => Promise<unknown>) => { try { await f(); } catch (e) { fail(e); } load(); };
   const add = (c: Any, cmd = false) => act(async () => {
     const k = await api('/catalog/printings', 'POST', { id: c.id });
@@ -112,8 +114,7 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
       <div className="count">{v.count}<small> / 100</small></div>
       <div className={'progress' + (v.count === 100 ? ' full' : v.count > 100 ? ' over' : '')}><span style={{ width: Math.min(100, v.count) + '%' }} /></div>
       <div className="kv">
-        {d.value && <span>Valore <b>{pricing && !d.value.oldest ? '…' : eur(d.value.eur)}</b>{d.value.unpriced > 0 && ` (${d.value.unpriced} senza prezzo)`}
-          <button className="ghost small icon" aria-label="Aggiorna i prezzi" title="Aggiorna i prezzi (Cardmarket)" disabled={pricing} onClick={() => prices(true)}><Icon name="refresh" /></button></span>}
+        {d.value && <span>Valore <b>{pricing && !d.value.oldest ? '…' : eur(d.value.eur)}</b>{d.value.unpriced > 0 && ` (${d.value.unpriced} senza prezzo)`}</span>}
         {problems.length > 0 && <span className="er">{problems.length === 1 ? '1 problema' : `${problems.length} problemi`} di regole</span>}
       </div>
     </div>
@@ -162,7 +163,7 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
       {!cmds.length && <div className="item"><span className="m">Nessun comandante: cercalo nella casella qui sopra e tocca “Comandante”.</span></div>}
       {cmds.length === 1 && !sel && <div className="item" style={{ minHeight: 44 }}><span className="m" style={{ fontSize: 14 }}>Per un secondo comandante (partner, background) cercalo qui sopra.</span></div>}
     </div>}
-    {sort.key === 'cmc' && main.length > 0 && main.every((c: Any) => c.cmc == null) && <p className="wa" style={{ margin: '4px 0 8px' }}>Il costo di mana di queste carte non è ancora disponibile: si scarica con «Aggiorna la banlist» nella pagina Mazzi.</p>}
+    {sort.key === 'cmc' && main.length > 0 && main.every((c: Any) => c.cmc == null) && <p className="wa" style={{ margin: '4px 0 8px' }}>Il costo di mana di queste carte non è ancora disponibile: si scarica da solo insieme alla banlist, alla prossima apertura del sito.</p>}
     {groups.length > 0 ? <div className="list">{groups.map(([g, l]) => [
       <div className="listhead" key={'h' + g}>{g}<span className="n">{l.reduce((t: number, c: Any) => t + c.need, 0)}</span></div>, ...l.map(Card)])}</div>
       : <p className="m" style={{ textAlign: 'center' }}>{main.length ? (qq ? `Nel mazzo non c’è “${q.trim()}”.` : 'Nessuna carta di questi colori.') : 'Ancora nessuna carta: cercale nella casella qui sopra, oppure incolla una lista con “Modifica come testo”.'}</p>}
@@ -171,7 +172,7 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
 
   <div className="side">
     <div className={'card ' + (problems.length ? 'er' : v.stale ? 'wa' : v.issues.length ? '' : 'ok')}><b>Regole Commander</b>
-      {v.stale && <p className="wa" style={{ margin: '6px 0' }}>La banlist ha più di 7 giorni: la legalità non è certa. Aggiornala dalla pagina Mazzi.</p>}
+      {v.stale && <p className="wa" style={{ margin: '6px 0' }}>La banlist ha più di 7 giorni: la legalità non è certa. Si aggiorna da sola alla prossima apertura del sito.</p>}
       {v.issues.length ? <ul style={{ margin: '8px 0 0', paddingLeft: 20 }}>{v.issues.map((i: Any, k: number) => <li key={k} className={i.incomplete ? 'm' : 'er'} style={{ margin: '4px 0' }}>{i.text}</li>)}</ul>
         : <p className="ok" style={{ margin: '6px 0 0' }}>Nessun problema regolamentare.</p>}</div>
   </div></div>

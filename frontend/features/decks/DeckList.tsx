@@ -29,7 +29,6 @@ export default function DeckList({ creating: startCreating, openId, go }: { crea
     e.preventDefault(); if (!name.trim()) return;
     try { const d = await api('/decks', 'POST', { name: name.trim(), mode }); setCreating(false); setName(''); openDeck(Number(d.id)); } catch (err) { fail(err); }
   };
-  const refresh = async () => { try { const r = await api('/catalog/refresh', 'POST'); toast(`Legalità aggiornata per ${r.updated} carte`); } catch (e) { fail(e); } };
   const act = list.filter(d => !d.archived), arch = list.filter(d => d.archived);
   const run = async (f: () => Promise<unknown>) => { try { await f(); } catch (e) { fail(e); } load(); };
   const rename = (d: Any) => { const n = prompt('Nuovo nome del mazzo', d.name)?.trim(); if (n && n !== d.name) run(() => api('/decks/' + d.id, 'PATCH', { name: n })); };
@@ -64,6 +63,6 @@ export default function DeckList({ creating: startCreating, openId, go }: { crea
     {act.length > 0 && <div className="decks">{act.map(Deck)}</div>}
     {loaded && !list.length && !creating && <div className="card empty"><b>Nessun mazzo</b><p className="m">Crea un mazzo e aggiungi le carte, oppure incolla la lista di un mazzo (anche da Moxfield).</p></div>}
     {arch.length > 0 && <details><summary>Archiviati ({arch.length})</summary><div className="decks">{arch.map(Deck)}</div></details>}
-    {loaded && list.length > 0 && <p className="m" style={{ fontSize: 14, margin: '16px 2px' }}>La legalità usa i dati di Scryfall. <button className="ghost small" style={{ padding: 0 }} onClick={refresh}>Aggiorna la banlist</button></p>}
+    {loaded && list.length > 0 && <p className="m" style={{ fontSize: 14, margin: '16px 2px' }}>La legalità usa i dati di Scryfall e si aggiorna da sola.</p>}
   </>;
 }
