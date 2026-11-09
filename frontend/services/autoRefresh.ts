@@ -9,12 +9,14 @@ let started: Promise<void> | null = null;
 const done = () => dispatchEvent(new Event('prices:updated'));
 export function refreshOnOpen() {
   return started ??= (async () => {
-    await api('/prices/collection', 'POST', { maxAgeH: MAX_AGE_H }).then(done).catch(() => {});
-    await api('/wishlist/prices', 'POST').then(done).catch(() => {});
+    let changed = false;
+    await api('/prices/collection', 'POST', { maxAgeH: MAX_AGE_H }).then(r => { if (r?.updated) changed = true; }).catch(() => {});
+    await api('/wishlist/prices', 'POST').then(r => { if (r?.updated) changed = true; }).catch(() => {});
     try {
       const s = await api('/stats'), last = s.banlist?.lastOk;
-      if (s.activeDecks > 0 && (!last || Date.now() - new Date(last).getTime() > 24 * 3600e3)) { await api('/catalog/refresh', 'POST'); done(); }
+      if (s.activeDecks > 0 && (!last || Date.now() - new Date(last).getTime() > 24 * 3600e3)) { await api('/catalog/refresh', 'POST'); changed = true; }
     } catch { /* riprova alla prossima apertura */ }
+    if (changed) done();
   })();
 }
 // mazzo aperto: le sue carte (anche quelle che non sono in collezione), una volta per apertura del sito

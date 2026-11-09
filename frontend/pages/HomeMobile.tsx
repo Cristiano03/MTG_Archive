@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { usePricesUpdated } from '../services/autoRefresh';
+import { snapGet, snapSet } from '../services/snapshot';
 import { api } from '../services/api';
 import { sfCollection } from '../services/scryfall';
 import type { Go } from './tabs';
@@ -12,19 +12,22 @@ const COLS = ['W', 'U', 'B', 'R', 'G', 'C'];
 const ago = (d: string) => { const n = Math.floor((Date.now() - new Date(d).getTime()) / 864e5); return n <= 0 ? 'aggiunta oggi' : n === 1 ? 'ieri' : n < 30 ? `${n} giorni fa` : new Date(d).toLocaleDateString('it'); };
 
 // Home del telefono: valore, carte in evidenza (i comandanti dei mazzi), cosa sistemare, identità di colore, mazzi, desideri, ultime aggiunte.
-export default function HomeMobile({ s, wish, pricing, go, featured = true }: { s: Any; wish: Any[] | null; pricing: boolean; go: Go; featured?: boolean }) {
-  const [items, setItems] = useState<Any[]>([]), [decks, setDecks] = useState<Any[]>([]), [feat, setFeat] = useState<Any[]>([]), [k, setK] = useState(0);
+export default function HomeMobile({ s, wish, items, decks, reload, pricing, go, featured = true }: { s: Any; wish: Any[] | null; items: Any[]; decks: Any[]; reload: () => unknown; pricing: boolean; go: Go; featured?: boolean }) {
+  // carte in evidenza: le ultime mostrate restano salvate, così compaiono subito alla prossima apertura
+  const [feat, setFeatS] = useState<Any[]>(() => snapGet('feat') ?? []), [k, setK] = useState(0);
+  const setFeat = (x: Any[]) => { setFeatS(x); snapSet('feat', x); };
+  const load = reload;
   const [col, setCol] = useState<string | null>(null), [card, setCard] = useState<Any | null>(null), [peek, setPeek] = useState<Any | null>(null);
-  const load = () => Promise.all([api('/collection').then(setItems), api('/decks').then(setDecks)]).catch(() => {});
-  useEffect(() => { load(); }, []);
-  usePricesUpdated(useCallback(() => { load(); }, []));
 
   // in evidenza: i comandanti dei mazzi attivi (al massimo 3); senza mazzi, le carte di valore più alto
+  // si richiedono a Scryfall solo quando cambiano i comandanti (non a ogni ricarica dei dati)
+  const cmdNames = [...new Set(decks.filter(d => !d.archived && d.commanders).map(d => String(d.commanders).split(' + ')[0]))].slice(0, 3), cmdKey = cmdNames.join('|');
   useEffect(() => {
-    const names = [...new Set(decks.filter(d => !d.archived && d.commanders).map(d => String(d.commanders).split(' + ')[0]))].slice(0, 3);
-    if (names.length) { sfCollection(names.map(name => ({ name }))).then(cs => setFeat(cs.map(c => ({ id: c.id, name: c.name, img: imgOf(c), ci: c.color_identity, price: c.prices?.eur ?? c.prices?.eur_foil })))).catch(() => {}); return; }
+    if (!decks.length && !items.length) return;
+    const names = cmdNames;
+    if (names.length) { if (feat.length && feat.map(f => f.name.split(' // ')[0]).join('|') === cmdKey) return; sfCollection(names.map(name => ({ name }))).then(cs => setFeat(cs.map(c => ({ id: c.id, name: c.name, img: imgOf(c), ci: c.color_identity, price: c.prices?.eur ?? c.prices?.eur_foil })))).catch(() => {}); return; }
     setFeat([...items].filter(i => i.price != null).sort((a, b) => b.price - a.price).slice(0, 3).map(i => ({ id: i.printing_id, name: i.name, img: big(i.image_small), ci: i.color_identity, price: i.price, item: i })));
-  }, [decks, items]);
+  }, [cmdKey, decks.length ? 0 : items.length]); // eslint-disable-line
 
   // copie per colore dell'identità (una carta multicolore conta per ogni suo colore)
   const byColor = useMemo(() => {

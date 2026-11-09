@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useWide } from '../../components/useWide';
 import CardDetail from '../card/CardDetail';
 import FilterSheet from './FilterSheet';
+import { snapGet, snapSet } from '../../services/snapshot';
 import { usePricesUpdated } from '../../services/autoRefresh';
 import { api, download, fail } from '../../services/api';
 import Search from '../../components/Search';
@@ -32,7 +33,8 @@ const wide = () => matchMedia('(min-width: 900px)').matches;
 // Collezione. Operazioni frequenti a un tocco: cercare (la stessa casella propone le stampe da aggiungere),
 // cambiare quantità, filtrare per colore, selezionare. Il resto nel pannello Filtri e nel menu "⋯".
 export default function Collection({ preset, go }: { preset?: Preset; go: Go }) {
-  const [items, setItems] = useState<Any[]>([]), [decks, setDecks] = useState<Any[]>([]), [loaded, setLoaded] = useState(false);
+  // si parte dagli ultimi dati salvati in questo browser (si vedono subito), poi arrivano quelli aggiornati
+  const [items, setItems] = useState<Any[]>(() => snapGet('items') ?? []), [decks, setDecks] = useState<Any[]>(() => snapGet('decks') ?? []), [loaded, setLoaded] = useState(() => !!snapGet('items'));
   const [q, setQ] = useState(''), [color, setColor] = useState<ColorFilter>(NO_COLOR), [sort, setSort] = usePref<Sort>('sort.collection', { key: 'name', desc: false });
   // dalla Home si arriva con un filtro già scelto (copie libere / nei mazzi)
   const [f, setF] = useState({ ...EMPTY, st: preset === 'free' || preset === 'asg' ? preset : '' }), [showF, setShowF] = useState(false);
@@ -47,8 +49,8 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   useEffect(() => { setSlot(document.getElementById('top-actions')); }, []);
   const toggle = (id: number) => setSel(cur => { const n = new Set(cur); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const load = useCallback(() => api('/collection').then(x => { setItems(x); setLoaded(true); return x; }).catch(fail), []);
-  const loadDecks = () => api('/decks').then(setDecks).catch(() => {});
+  const load = useCallback(() => api('/collection').then(x => { setItems(x); setLoaded(true); snapSet('items', x); return x; }).catch(fail), []);
+  const loadDecks = () => api('/decks').then(x => { setDecks(x); snapSet('decks', x); }).catch(() => {});
   // prezzi mancanti o più vecchi di 20 ore: si aggiornano da soli una volta, poi si ricarica l'elenco
   // i prezzi si aggiornano da soli all'apertura del sito (services/autoRefresh): qui si ricarica l'elenco quando hanno finito
   useEffect(() => { load(); loadDecks(); }, [load]);
@@ -168,7 +170,7 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
     {view === 'grid' && shown.length > 0 && <div className="cgrid">{shown.map(i => <button key={i.id} className={(sel?.has(i.id) ? 'selected' : '') + (isWide && side?.id === i.id ? ' cur' : '')} onClick={() => sel ? toggle(i.id) : setCard(i)}>
       <img src={i.image_small?.replace('/small/', '/normal/')} alt={i.name} loading="lazy" /><span className="qty">×{i.qty}</span>{sel && <Check on={sel.has(i.id)} />}
       {i.price != null && <small>{eur(i.price)}</small>}</button>)}</div>}
-    {shown.length > 0 && view === 'list' && <div className="list grid2 flat">{shown.map(i => <Fragment key={i.id}>
+    {shown.length > 0 && view !== 'grid' && <div className="list grid2 flat">{shown.map(i => <Fragment key={i.id}>
       <div className={'item tap' + (sel?.has(i.id) ? ' selected' : '') + (isWide && side?.id === i.id ? ' cur' : '')} onClick={() => sel ? toggle(i.id) : setCard(i)} aria-pressed={sel ? sel.has(i.id) : undefined}>
         {sel && <Check on={sel.has(i.id)} />}
         <img className="thumb" alt="" loading="lazy" src={i.image_small} {...bind(i.image_small)} />

@@ -16,6 +16,7 @@ import { supabase, configured } from './services/supabase';
 import { DEMO } from './services/api';
 import { refreshOnOpen } from './services/autoRefresh';
 import { applyTheme, currentTheme, isTheme } from './services/theme';
+import { setSnapOwner, snapClear } from './services/snapshot';
 // il tema salvato nell'account vale su ogni dispositivo: dopo l'accesso prende il posto di quello del browser
 const themeFrom = (u?: { user_metadata?: Record<string, unknown> } | null) => { const t = u?.user_metadata?.theme; if (isTheme(t) && t !== currentTheme()) applyTheme(t); };
 
@@ -38,7 +39,7 @@ export default function App() {
     if (!configured) return;
     supabase.auth.getSession().then(({ data }) => { themeFrom(data.session?.user); setUser(data.session?.user.email ?? null); }).catch(() => setUser(null));
     // dal link "Password dimenticata" arriva una sessione di recupero: prima si sceglie la nuova password
-    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => { if (e === 'PASSWORD_RECOVERY') setRecovery(true); if (e === 'SIGNED_IN') themeFrom(s?.user); setUser(s?.user.email ?? null); });
+    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => { if (e === 'PASSWORD_RECOVERY') setRecovery(true); if (e === 'SIGNED_IN') themeFrom(s?.user); if (e === 'SIGNED_OUT') snapClear(); setUser(s?.user.email ?? null); });
     const h = () => { supabase.auth.signOut().catch(() => {}); setUser(null); }; addEventListener('auth:required', h);
     return () => { sub.subscription.unsubscribe(); removeEventListener('auth:required', h); };
   }, []);
@@ -51,6 +52,7 @@ export default function App() {
 }
 
 function Main({ email, onLogout }: { email: string; onLogout: () => void }) {
+  setSnapOwner(email);
   const [tab, setTab] = useState<Tab>('h'), [round, setRound] = useState(0), [preset, setPreset] = useState<Preset | undefined>(), [prev, setPrev] = useState<Tab>('h');
   // toccare di nuovo la sezione attiva riporta all'inizio (es. dal mazzo aperto all'elenco dei mazzi)
   const go = (t: Tab, p?: Preset) => {

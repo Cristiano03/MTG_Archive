@@ -880,6 +880,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--i
   .top h1 { display: block; visibility: hidden; flex: 1; }
 }
 
+/* computer, mazzo / collezione / desideri: la barra dei filtri resta nella sua colonna (prima usciva a sinistra di 32 px
+   e il suo fondo squadrato copriva il bordo del pannello della carta: era la "striscia nera"), con gli angoli arrotondati */
+@media (min-width: 900px) {
+  .colgrid .toolbar, .deckgrid .toolbar { margin: 0 0 8px; padding: 10px 12px; border-radius: 20px; top: 12px; }
+  .colgrid .toolbar { background: color-mix(in srgb, var(--paper) 88%, transparent); }
+  .deckgrid .toolbar.inset { margin: 10px 0 8px; }
+}
+
 /* ordinamento: un pulsante con il tipo (si apre il menu) e accanto il verso */
 .sortctl2 { display: inline-flex; align-items: center; gap: 6px; flex: none; }
 .sortsel { position: relative; display: inline-flex; align-items: center; min-height: 0; gap: 0; }
