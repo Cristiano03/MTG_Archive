@@ -54,10 +54,11 @@ export function ManaToggles({ value, onChange }: { value: ColorFilter; onChange:
 const SHORT: Record<SortKey, string> = { name: 'Nome', cmc: 'Costo', qty: 'Copie', set: 'Edizione', recent: 'Recenti', price: 'Prezzo', value: 'Valore' };
 const DESC_FIRST: SortKey[] = ['recent', 'qty', 'price', 'value'];
 export function SortChip({ value, onChange, keys }: { value: Sort; onChange: (s: Sort) => void; keys: SortKey[] }) {
-  return <select aria-label="Ordina per" title={`Ordina per ${LABEL[value.key].toLowerCase()}, ${value.desc ? 'decrescente' : 'crescente'}`} value={value.key + (value.desc ? ':d' : ':a')}
-    onChange={e => { const [k, d] = e.target.value.split(':'); onChange({ key: k as SortKey, desc: d === 'd' }); }}>
-    {keys.flatMap(k => (DESC_FIRST.includes(k) ? [true, false] : [false, true]).map(desc =>
-      <option key={k + desc} value={k + (desc ? ':d' : ':a')}>{SHORT[k]} {desc ? '↓' : '↑'}</option>))}</select>;
+  return <span className="sortctl2">
+    <label className="sortsel"><Icon name="sortdown" /><select aria-label="Ordina per" value={value.key} onChange={e => { const k = e.target.value as SortKey; onChange({ key: k, desc: DESC_FIRST.includes(k) }); }}>
+      {keys.map(k => <option key={k} value={k}>{LABEL[k]}</option>)}</select></label>
+    <button className="icon sortdir" aria-label={value.desc ? 'Ordine decrescente: tocca per crescente' : 'Ordine crescente: tocca per decrescente'} title={value.desc ? 'Decrescente' : 'Crescente'}
+      onClick={() => onChange({ ...value, desc: !value.desc })}><Icon name={value.desc ? 'arrowdown' : 'arrowup'} /></button></span>;
 }
 export function ColorControl({ value, onChange, showBy = true }: { value: ColorFilter; onChange: (f: ColorFilter) => void; showBy?: boolean }) {
   const toggle = (c: string) => onChange({ ...value, col: value.col.includes(c) ? value.col.filter(x => x !== c) : [...value.col, c] });

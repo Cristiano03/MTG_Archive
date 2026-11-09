@@ -154,7 +154,7 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
       {shown.length} {shown.length === 1 ? 'stampa' : 'stampe'} · {copies} {copies === 1 ? 'copia' : 'copie'}
       {f.st === 'free' ? ` (${freeN} ${freeN === 1 ? 'libera' : 'libere'})` : f.st === 'asg' ? ` (${asgN} nei mazzi)` : ''}{shownValue > 0 && ` · ${eur(shownValue)}`}
       {(active > 0 || color.col.length > 0) && <> · <button className="ghost small" style={{ padding: 0, minHeight: 0 }} onClick={() => { setF(EMPTY); setColor(NO_COLOR); }}>azzera filtri</button></>}</span>
-      <span className="sortlink"><Icon name="sortdown" /><SortChip value={sort} onChange={setSort} keys={[...SORTS]} /></span></p>}
+      <SortChip value={sort} onChange={setSort} keys={[...SORTS]} /></p>}
     {sort.key === 'cmc' && items.length > 0 && items.every(i => i.cmc == null) && <p className="wa" style={{ margin: '4px 2px 8px' }}>Il costo di mana non è ancora disponibile: si scarica da solo insieme alla banlist, alla prossima apertura del sito.</p>}
 
     {slot && createPortal(<>

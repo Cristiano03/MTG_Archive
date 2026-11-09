@@ -538,7 +538,7 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 /* scheda della carta */
 .cdetail { position: fixed; inset: 0; z-index: 110; overflow-y: auto; overscroll-behavior: contain; background: var(--paper); animation: fade .2s ease;
   padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-.cd-art { position: absolute; left: 0; right: 0; top: 0; height: 620px; background: var(--art) center 20% / cover no-repeat; filter: blur(40px) saturate(1.2); opacity: .45; pointer-events: none;
+.cd-art { position: absolute; left: -90px; right: -90px; top: -90px; height: 710px; background: var(--art) center 20% / cover no-repeat; filter: blur(40px) saturate(1.2); opacity: .45; pointer-events: none;
   -webkit-mask: linear-gradient(#000 30%, transparent); mask: linear-gradient(#000 30%, transparent); }
 .cd-top { position: sticky; top: 0; z-index: 3; display: flex; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 10px) var(--gutter) 10px; }
 .cd-top button.sq { background: color-mix(in srgb, var(--paper) 55%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-color: rgba(255, 255, 255, .12); }
@@ -860,6 +860,26 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--i
   -webkit-mask: linear-gradient(#000 25%, transparent 95%); mask: linear-gradient(#000 25%, transparent 95%); }
 .deckart i { flex: 1; background: center 30% / cover no-repeat; filter: saturate(1.1); }
 @media (min-width: 900px) { .deckart { height: 560px; opacity: .45; } }
+
+/* l'illustrazione sfocata esce dai bordi della scheda (altrimenti la sfocatura lascia due strisce scure ai lati): la scheda la ritaglia */
+.cdetail { overflow-x: hidden; }
+
+/* pulsanti dell'intestazione: sfondo velato e sfocato, così si staccano dalle illustrazioni dietro */
+.top > button.icon, .top-actions > button, .top-lead > button, .cd-top button.sq {
+  background: color-mix(in srgb, var(--paper) 62%, transparent) !important; -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  border-color: color-mix(in srgb, var(--ink) 14%, transparent) !important; }
+
+/* ordinamento: un pulsante con il tipo (si apre il menu) e accanto il verso */
+.sortctl2 { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.sortsel { position: relative; display: inline-flex; align-items: center; min-height: 0; gap: 0; }
+.sortsel > svg { position: absolute; left: 11px; width: 17px; height: 17px; color: var(--ink-2); pointer-events: none; }
+.sortctl2 select { width: auto; min-height: 38px; padding: 0 32px 0 34px; border-radius: 12px; background-color: var(--sheet); border: 1px solid var(--line);
+  font-weight: 600; font-size: 14.5px; color: var(--ink); cursor: pointer; }
+.sortctl2 select:hover { border-color: var(--field-line); }
+.sortctl2 .sortdir { width: 38px; min-height: 38px; border-radius: 12px; background: var(--sheet); border: 1px solid var(--line); }
+.sortctl2 .sortdir svg { width: 18px; height: 18px; }
+.chips > .sortctl2 { margin-left: auto; }
+.chips > .sortctl2 select { flex: none; }
 
 /* ---------- solo telefono: intestazione fusa con la pagina, barra in basso a icone ---------- */
 @media (max-width: 899px) {
