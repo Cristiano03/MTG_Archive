@@ -5,6 +5,29 @@ import Icon from '../../components/Icon';
 import { toast } from '../../components/Toast';
 import { MIN_PW } from '../../pages/AuthPage';
 import type { Go } from '../../pages/tabs';
+import { useEffect } from 'react';
+import { DEMO } from '../../services/api';
+import { THEMES, applyTheme, currentTheme, type ThemeId } from '../../services/theme';
+
+// Scelta del tema: si applica subito e si salva nell'account (user_metadata), così vale anche sugli altri dispositivi
+function ThemePicker() {
+  const [cur, setCur] = useState<ThemeId>(currentTheme());
+  useEffect(() => { const h = () => setCur(currentTheme()); addEventListener('theme:changed', h); return () => removeEventListener('theme:changed', h); }, []);
+  const pick = async (id: ThemeId) => {
+    applyTheme(id);
+    if (DEMO) return;
+    const { error } = await supabase.auth.updateUser({ data: { theme: id } });
+    if (error) toast('Tema applicato qui, ma non salvato nell’account: ' + error.message, 'er');
+  };
+  return <div className="card"><b>Tema</b>
+    <p className="m" style={{ margin: '4px 0 12px', fontSize: 14 }}>Resta salvato nel tuo account: lo ritrovi su ogni dispositivo.</p>
+    <div className="themes">{(Object.keys(THEMES) as ThemeId[]).map(id => { const t = THEMES[id];
+      return <button key={id} className={'theme' + (cur === id ? ' on' : '')} aria-pressed={cur === id} onClick={() => pick(id)} style={{ background: t.app, borderColor: cur === id ? t.accent : t.border, color: t.text }}>
+        <span className="sw"><i style={{ background: t.surface }} /><i style={{ background: t.control }} /><i style={{ background: t.accent }} /></span>
+        <b>{t.name}</b><small style={{ color: t.text2 }}>{t.desc}</small>
+        {cur === id && <span className="tick" style={{ background: t.accent, color: t.onAccent }}><Icon name="check" size={14} /></span>}</button>; })}</div></div>;
+}
+
 // Account: dati dell'accesso, cambio password, uscita (anche da tutti i dispositivi), esportazione dei dati ed eliminazione dell'account.
 export default function Account({ email, onLogout, go }: { email: string; onLogout: () => void; go: Go }) {
   const [cur, setCur] = useState(''), [pw, setPw] = useState(''), [pw2, setPw2] = useState(''), [busy, setBusy] = useState(false);
@@ -35,6 +58,8 @@ export default function Account({ email, onLogout, go }: { email: string; onLogo
     <div className="card"><b>Accesso effettuato</b><p style={{ margin: '4px 0 12px', overflowWrap: 'anywhere' }}>{email}</p>
       <div className="bar" style={{ marginBottom: 0 }}><button onClick={() => logout('local')}><Icon name="back" />Esci</button>
         <button className="ghost" onClick={() => logout('global')}>Esci da tutti i dispositivi</button></div></div>
+
+    <ThemePicker />
 
     <form className="card auth-form" onSubmit={change}><b>Cambia password</b>
       <label className="field"><span>Password attuale</span><input type="password" autoComplete="current-password" required value={cur} onChange={e => setCur(e.target.value)} /></label>

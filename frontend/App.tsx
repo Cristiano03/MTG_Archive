@@ -15,6 +15,9 @@ import Sheet from './components/Sheet';
 import { supabase, configured } from './services/supabase';
 import { DEMO } from './services/api';
 import { refreshOnOpen } from './services/autoRefresh';
+import { applyTheme, currentTheme, isTheme } from './services/theme';
+// il tema salvato nell'account vale su ogni dispositivo: dopo l'accesso prende il posto di quello del browser
+const themeFrom = (u?: { user_metadata?: Record<string, unknown> } | null) => { const t = u?.user_metadata?.theme; if (isTheme(t) && t !== currentTheme()) applyTheme(t); };
 
 // navigazione: in basso sul telefono (Scansiona al centro, solo lì c'è la fotocamera), in alto sul computer
 const TABS: { k: Tab; label: string; icon: string; mobile?: boolean }[] = [
@@ -33,9 +36,9 @@ export default function App() {
   // la sessione la gestisce Supabase Auth (resta salvata nel browser e si rinnova da sola)
   useEffect(() => {
     if (!configured) return;
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user.email ?? null)).catch(() => setUser(null));
+    supabase.auth.getSession().then(({ data }) => { themeFrom(data.session?.user); setUser(data.session?.user.email ?? null); }).catch(() => setUser(null));
     // dal link "Password dimenticata" arriva una sessione di recupero: prima si sceglie la nuova password
-    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => { if (e === 'PASSWORD_RECOVERY') setRecovery(true); setUser(s?.user.email ?? null); });
+    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => { if (e === 'PASSWORD_RECOVERY') setRecovery(true); if (e === 'SIGNED_IN') themeFrom(s?.user); setUser(s?.user.email ?? null); });
     const h = () => { supabase.auth.signOut().catch(() => {}); setUser(null); }; addEventListener('auth:required', h);
     return () => { sub.subscription.unsubscribe(); removeEventListener('auth:required', h); };
   }, []);

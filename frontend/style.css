@@ -6,16 +6,23 @@
 
 :root {
   /* tavolozza scura (dal prototipo): grafite, superfici appena più chiare, azione primaria chiara, colori del mana tenui */
-  --paper: #24292f;   /* sfondo */
-  --sheet: #30353b;   /* superfici */
-  --sunk: #2b3036;    /* campi e zone incassate */
-  --raised: #3c4147;  /* elementi sopra le superfici (scelte attive, pulsanti nelle schede) */
-  --ink: #f1f2f4;     /* testo */
-  --ink-2: #9ba1a8;   /* testo secondario */
-  --line: #3a3f45;
-  --arcane: #e9e9ea;  /* azione primaria: pulsante chiaro con testo scuro */
-  --arcane-ink: #1f2328;
-  --arcane-soft: #41474e;
+  /* colori di base: li imposta il tema scelto (services/theme.ts); questi sono quelli di Ardesia, il tema predefinito */
+  --paper: #0E1217;   /* sfondo */
+  --sheet: #1C2328;   /* superfici */
+  --sunk: #343E43;    /* controlli e chip */
+  --line: #2A3338;    /* bordi */
+  --ink: #E1E6EA;     /* testo */
+  --ink-2: #A6B7BF;   /* testo secondario */
+  --ink-3: #57666D;   /* testo terziario */
+  --arcane: #A6B7BF;  /* accento: azione primaria */
+  --arcane-press: #8FA1AA;
+  --arcane-ink: #0E1217;
+  /* ricavati */
+  --raised: color-mix(in srgb, var(--sunk) 82%, var(--ink));        /* scelta attiva sopra i controlli */
+  --arcane-soft: color-mix(in srgb, var(--arcane) 16%, var(--sheet));
+  --field: color-mix(in srgb, var(--paper) 70%, #000);               /* campi di testo incassati */
+  --field-line: color-mix(in srgb, var(--line) 55%, var(--ink-3));   /* bordo dei campi */
+  --menu: color-mix(in srgb, var(--sheet) 70%, var(--sunk));
   --ok: #8fc77a; --wa: #f2b871; --er: #ec7b6a;
   --mana-w: #eedc93; --mana-u: #7ab3e3; --mana-b: #8d8994; --mana-r: #e8806c; --mana-g: #8fc77a; --mana-c: #c3c3c8;
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .6);
@@ -109,6 +116,7 @@ button {
   touch-action: manipulation; transition: transform .08s ease, background-color .15s;
 }
 button:active:not(:disabled) { transform: scale(.97); }
+button.b:active:not(:disabled) { background: var(--arcane-press); }
 button:disabled { opacity: .45; cursor: default; }
 button.b { background: var(--arcane); border-color: var(--arcane); color: var(--arcane-ink); }
 button.soft { background: var(--arcane-soft); border-color: transparent; color: var(--arcane); }
@@ -121,7 +129,7 @@ button.small.icon { width: 36px; }
 button svg { width: 20px; height: 20px; flex: none; }
 @media (hover: hover) {
   button:hover:not(:disabled) { background: color-mix(in srgb, var(--sheet) 85%, var(--arcane)); }
-  button.b:hover:not(:disabled) { background: color-mix(in srgb, var(--arcane) 88%, #000); }
+  button.b:hover:not(:disabled) { background: var(--arcane-press); }
   button.soft:hover:not(:disabled) { background: color-mix(in srgb, var(--arcane-soft) 80%, var(--arcane)); }
   .tabbar button:hover, .selbar button:hover { background: none; color: var(--ink); }
 }
@@ -298,19 +306,19 @@ details[open] > summary { margin-bottom: 8px; }
 
 /* avvisi temporanei */
 .toast { position: fixed; left: 50%; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 14px); transform: translateX(-50%); z-index: 120; max-width: calc(100vw - 32px);
-  padding: 10px 16px; border-radius: 14px; background: #454b52; color: var(--ink); font-weight: 600; font-size: 14.5px; box-shadow: 0 8px 24px rgba(0,0,0,.3); animation: fade .15s ease; }
+  padding: 10px 16px; border-radius: 14px; background: var(--raised); color: var(--ink); font-weight: 600; font-size: 14.5px; box-shadow: 0 8px 24px rgba(0,0,0,.3); animation: fade .15s ease; }
 .toast.er { background: var(--er); color: #2a1210; }
 
 /* accesso: sfondo più scuro, riquadro in rilievo, campi incassati ben visibili */
 .auth { min-height: 100dvh; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + 24px) var(--gutter) calc(env(safe-area-inset-bottom) + 24px);
-  background: radial-gradient(80% 50% at 50% 0%, rgba(143, 199, 122, .10), transparent 70%), radial-gradient(70% 50% at 50% 100%, rgba(122, 179, 227, .08), transparent 70%), #15181c; }
-.auth-box { width: 100%; max-width: 400px; background: linear-gradient(180deg, #343a41, #2b3036); border: 1px solid rgba(255, 255, 255, .08); border-radius: 28px; padding: 28px 22px; display: flex; flex-direction: column;
+  background: radial-gradient(80% 50% at 50% 0%, rgba(143, 199, 122, .10), transparent 70%), radial-gradient(70% 50% at 50% 100%, rgba(122, 179, 227, .08), transparent 70%), color-mix(in srgb, var(--paper) 80%, #000); }
+.auth-box { width: 100%; max-width: 400px; background: linear-gradient(180deg, color-mix(in srgb, var(--sheet) 88%, var(--ink)), var(--sheet)); border: 1px solid rgba(255, 255, 255, .08); border-radius: 28px; padding: 28px 22px; display: flex; flex-direction: column;
   box-shadow: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 30px 60px -20px rgba(0, 0, 0, .8), 0 12px 24px -12px rgba(0, 0, 0, .6); }
 .auth-title { font-family: var(--font-body); font-weight: 750; letter-spacing: -.02em; font-size: 28px; margin: 0 0 6px; text-align: center; }
 .auth-form { display: flex; flex-direction: column; gap: 14px; }
-.auth input:not([type=checkbox]) { background-color: #1b1f23 !important; border: 1px solid #454b52 !important; border-radius: 14px; min-height: 50px; box-shadow: 0 2px 6px rgba(0, 0, 0, .35) inset; }
+.auth input:not([type=checkbox]) { background-color: var(--field) !important; border: 1px solid var(--field-line) !important; border-radius: 14px; min-height: 50px; box-shadow: 0 2px 6px rgba(0, 0, 0, .35) inset; }
 .auth input:not([type=checkbox]):focus { border-color: var(--ink-2) !important; outline: none; }
-.auth .seg { background: #1b1f23; }
+.auth .seg { background: var(--field); }
 .auth button.b { min-height: 50px; border-radius: 14px; }
 
 /* menu a tendina */
@@ -353,7 +361,7 @@ details[open] > summary { margin-bottom: 8px; }
 
 /* scanner */
 .scan-toast { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); max-width: 90%; padding: 8px 14px; border-radius: 12px;
-  background: rgba(36, 41, 47, .88); color: #fff; font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: fade .15s ease; }
+  background: color-mix(in srgb, var(--paper) 88%, transparent); color: var(--ink); font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: fade .15s ease; }
 .big-card { width: min(62vw, 240px); aspect-ratio: 63 / 88; border-radius: 4.75% / 3.5%; object-fit: cover; margin: 4px auto 12px; display: block; box-shadow: 0 8px 24px rgba(0,0,0,.25); background: var(--line); }
 .shutter { width: 76px; height: 76px; flex: 0 0 auto !important; border-radius: 50%; padding: 0; background: var(--arcane); border: 4px solid var(--sheet); box-shadow: 0 0 0 2px var(--arcane); color: var(--arcane-ink); }
 .shutter svg { width: 30px; height: 30px; }
@@ -480,7 +488,7 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 @keyframes textin { from { opacity: 0; transform: translateY(8px); } }
 .pricechip { margin-top: 12px; padding: 5px 12px; border-radius: 10px; background: var(--sheet); font-weight: 600; font-size: 15px; }
 .dots { display: flex; gap: 5px; margin-top: 12px; }
-.dots span { width: 6px; height: 6px; border-radius: 3px; background: #5b6168; transition: width .2s; }
+.dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--ink-3); transition: width .2s; }
 .dots span.on { width: 22px; background: var(--ink); }
 .hint { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
 .fixrow { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; margin: 14px 0; border-radius: 18px; text-align: left; white-space: normal; font-weight: 400;
@@ -614,6 +622,15 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 .dhero .progress > span { background: linear-gradient(90deg, var(--glow, var(--ink))); }
 .dhero .empty-cmd { width: min(48vw, 210px); aspect-ratio: 63 / 88; border-radius: 4.6% / 3.3%; border: 1.5px dashed var(--line); display: grid; place-items: center; color: var(--ink-2); font-size: 14px; padding: 12px; position: relative; z-index: 1; }
 
+/* scelta del tema (Account): ogni riquadro mostra i colori del suo tema */
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.theme { position: relative; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 104px; padding: 12px; border: 2px solid; border-radius: 16px; text-align: left; white-space: normal; font-weight: 400; }
+.theme .sw { display: flex; gap: 5px; margin-bottom: auto; }
+.theme .sw i { width: 22px; height: 22px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08) inset; }
+.theme b { font-size: 16px; font-weight: 650; margin-top: 10px; }
+.theme small { font-size: 12.5px; line-height: 1.3; }
+.theme .tick { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; }
+
 /* modifica della copia, griglia della collezione */
 .edhead { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .edhead .thumb { width: 44px; }
@@ -626,7 +643,7 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 .cgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 8px 0; }
 .cgrid button { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 0; border: 0; background: none; min-height: 0; font-weight: 400; }
 .cgrid img { width: 100%; aspect-ratio: 63 / 88; border-radius: 4.6% / 3.3%; background: var(--sheet); object-fit: cover; }
-.cgrid .qty { position: absolute; top: 6px; right: 6px; padding: 1px 7px; border-radius: 8px; background: rgba(20, 23, 27, .82); font-size: 12.5px; font-weight: 700; }
+.cgrid .qty { position: absolute; top: 6px; right: 6px; padding: 1px 7px; border-radius: 8px; background: color-mix(in srgb, var(--paper) 85%, transparent); font-size: 12.5px; font-weight: 700; }
 .cgrid small { color: var(--ink-2); font-size: 13px; text-align: center; }
 .cgrid .check { position: absolute; top: 6px; left: 6px; }
 .cgrid button.selected img { outline: 3px solid var(--arcane); outline-offset: 2px; }
@@ -767,9 +784,9 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 
   /* schede dal basso: titolo con la X, pulsanti in fondo */
   .sheet { background: var(--sheet); border-radius: 26px 26px 0 0; padding-top: 10px; }
-  .sheet-grip { background: #5a6066; margin-bottom: 12px; }
+  .sheet-grip { background: var(--ink-3); margin-bottom: 12px; }
   .sheet-title { font-size: 23px; margin: 2px 0 6px; }
-  .sheet-head > button.icon { width: 46px; min-height: 46px; border-radius: 14px; background: transparent; border: 1px solid #4a5057; }
+  .sheet-head > button.icon { width: 46px; min-height: 46px; border-radius: 14px; background: transparent; border: 1px solid var(--field-line); }
   .sheet .list, .sheet .card, .sheet .tile { background: var(--sunk); }
   .sheet input, .sheet select, .sheet textarea { background-color: var(--sunk); }
   /* campi dentro riquadri e schede: incassati e con il bordo, così si distinguono dal fondo */
@@ -777,7 +794,7 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   .panel input:not([type=checkbox]), .panel select, .panel textarea,
   .itemx input:not([type=checkbox]), .itemx select, .itemx textarea,
   .sheet input:not([type=checkbox]), .sheet select, .sheet textarea {
-    background-color: #1d2125; border: 1px solid #454b52; box-shadow: 0 2px 6px rgba(0, 0, 0, .3) inset; }
+    background-color: var(--field); border: 1px solid var(--field-line); box-shadow: 0 2px 6px rgba(0, 0, 0, .3) inset; }
   .card input:focus, .card select:focus, .card textarea:focus, .panel input:focus, .itemx input:focus, .sheet input:focus, .sheet select:focus, .sheet textarea:focus { border-color: var(--ink-2); }
   .kvlist .notein input { box-shadow: none; }
   .sheet .seg { background: var(--sunk); }
@@ -788,7 +805,7 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   .addgrid button { background: var(--sunk); border-color: transparent; }
   .addgrid button.on { background: var(--arcane); }
 
-  .menu { background: #353b41; border-color: #444a51; border-radius: 18px; }
+  .menu { background: var(--menu); border-color: var(--field-line); border-radius: 18px; }
   .selinfo { background: var(--sheet); color: var(--ink); }
   .selinfo button { background: var(--raised); color: var(--ink); }
   .check.on { background: var(--arcane); border-color: var(--arcane); color: var(--arcane-ink); }
