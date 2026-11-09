@@ -467,9 +467,6 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 .mvalue .sub2.wa { color: var(--wa); }
 .featured { position: relative; display: flex; flex-direction: column; align-items: center; padding: 18px 0 6px; margin: 0 calc(-1 * var(--gutter)); }
 .featured { isolation: isolate; }
-.featured::before { content: ""; position: absolute; left: 0; right: 0; top: -40px; height: 520px; z-index: -1; pointer-events: none; opacity: .45;
-  background: linear-gradient(90deg, var(--glow)); filter: blur(24px);
-  -webkit-mask: radial-gradient(42% 40% at 50% 50%, #000, transparent); mask: radial-gradient(42% 40% at 50% 50%, #000, transparent); }
 .fan { position: relative; width: 62%; max-width: 260px; aspect-ratio: 63 / 88; cursor: pointer; }
 .fslot { position: absolute; inset: 0; transition: transform .6s cubic-bezier(.3, .9, .3, 1), filter .6s ease, z-index 0s .25s; will-change: transform; }
 .fslot.front { z-index: 3; transform: none; }
@@ -481,7 +478,6 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 @keyframes cardin { from { transform: perspective(900px) translateY(-14px) rotateY(-24deg) scale(.96); } }
 .ftext { display: flex; flex-direction: column; align-items: center; animation: textin .45s ease; }
 @keyframes textin { from { opacity: 0; transform: translateY(8px); } }
-.featured::before { transition: background .6s; }
 .pricechip { margin-top: 12px; padding: 5px 12px; border-radius: 10px; background: var(--sheet); font-weight: 600; font-size: 15px; }
 .dots { display: flex; gap: 5px; margin-top: 12px; }
 .dots span { width: 6px; height: 6px; border-radius: 3px; background: #5b6168; transition: width .2s; }
@@ -590,6 +586,34 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 .cd-acts > button.b { flex: 1; }
 .ftext { cursor: pointer; }
 
+/* aura colorata dietro le carte: i colori della carta (o del comandante), sfocati e in lento respiro */
+.aura { position: absolute; inset: -8% -22%; z-index: 0; pointer-events: none; border-radius: 50%;
+  background: conic-gradient(from 200deg, var(--glow, var(--mana-c)), var(--glow, var(--mana-c))); filter: blur(38px) saturate(1.6); opacity: .8; animation: aura 6s ease-in-out infinite; }
+@keyframes aura { 50% { opacity: 1; transform: scale(1.08) rotate(14deg); } }
+.fan > .fslot { z-index: 1; } .fan > .fslot.prev { z-index: 2; } .fan > .fslot.front { z-index: 3; }
+.cd-cardwrap { position: relative; isolation: isolate; display: flex; justify-content: center; }
+.cd-cardwrap > .card3d { position: relative; z-index: 1; }
+
+/* mazzo sul telefono: sfondo sfumato nei colori del comandante, comandante in 3D con l'aura */
+.deckbg { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, var(--paper) 62%), linear-gradient(115deg, var(--glow, var(--mana-c))); opacity: .42; }
+.dhero { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 8px 0 4px; }
+.dcmd { position: relative; display: flex; justify-content: center; width: 100%; margin: 6px 0 14px; }
+.dcmd .card3d { position: relative; z-index: 1; width: min(48vw, 210px); }
+.dcmd.n2 .card3d { width: min(40vw, 170px); }
+.dcmd.n2 .card3d:first-of-type { transform: perspective(900px) rotate(-6deg) translateX(10%); }
+.dcmd.n2 .card3d:last-of-type { transform: perspective(900px) rotate(6deg) translateX(-10%); }
+.dcmd.n2 .card3d { animation: none; }
+.dcmd .aura { inset: -6% 4%; }
+.dhero h2 { font-size: 30px; margin: 4px 0 2px; letter-spacing: -.015em; }
+.dhero > small { color: var(--ink-2); font-size: 15px; }
+.dhero .pills { justify-content: center; margin-top: 10px; }
+.dhero .dcount { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; font-size: 15px; color: var(--ink-2); }
+.dhero .dcount b { font-size: 36px; color: var(--ink); letter-spacing: -.02em; }
+.dhero .progress { width: 100%; height: 6px; margin-top: 10px; background: rgba(0, 0, 0, .3); }
+.dhero .progress > span { background: linear-gradient(90deg, var(--glow, var(--ink))); }
+.dhero .empty-cmd { width: min(48vw, 210px); aspect-ratio: 63 / 88; border-radius: 4.6% / 3.3%; border: 1.5px dashed var(--line); display: grid; place-items: center; color: var(--ink-2); font-size: 14px; padding: 12px; position: relative; z-index: 1; }
+
 /* modifica della copia, griglia della collezione */
 .edhead { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .edhead .thumb { width: 44px; }
@@ -617,7 +641,6 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 .cd-hero { margin-top: -6px; }
 .cd-card { width: min(64vw, 280px); }
 .fan { width: 56%; }
-.featured::before { opacity: .7; }
 
 /* ---------- telefono: grafica del prototipo (titoli grandi, pulsanti quadrati arrotondati, righe senza riquadro, barra in basso a icone) ---------- */
 @media (max-width: 899px) {

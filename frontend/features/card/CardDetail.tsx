@@ -75,7 +75,7 @@ export default function CardDetail({ item: it, card: given, printingId, name: nm
       ]}><Icon name="dots" /></Menu></div>
 
     <div className="cd-hero">
-      <Card3D src={c ? imgOf(c, 'large') : big(item.image_small, 'large')} className="cd-card" />
+      <div className="cd-cardwrap"><span className="aura" /><Card3D src={c ? imgOf(c, 'large') : big(item.image_small, 'large')} className="cd-card" /></div>
       <SplitName name={item.name} />
       <ColorTags ci={ci} />
       <div className="cd-price">{priceOf(c) != null && <b>{eur(priceOf(c))}</b>}{shown && shown.id !== card?.id && <small>{shown.set.toUpperCase()} #{shown.collector_number}</small>}

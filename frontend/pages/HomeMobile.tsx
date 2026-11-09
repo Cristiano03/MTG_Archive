@@ -51,6 +51,7 @@ export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any
     {f && <section className="featured" style={{ '--glow': glow(f.ci) } as React.CSSProperties}>
       {/* le carte restano le stesse e cambiano solo posto: davanti, dietro a destra (la prossima), dietro a sinistra (la precedente) */}
       <div className="fan" onClick={() => setK(k + 1)}>
+        <span className="aura" />
         {feat.map((x, i) => { const n = feat.length, p = (i - (k % n) + n) % n, slot = p === 0 ? 'front' : p === 1 && n > 2 ? 'next' : 'prev';
           return <div key={x.name} className={'fslot ' + slot}><Card3D src={x.img} /></div>; })}
       </div>
@@ -60,7 +61,7 @@ export default function HomeMobile({ s, wish, pricing, go }: { s: Any; wish: Any
       {f.price != null && <span className="pricechip">{eur(f.price)}</span>}
       {feat.length > 1 && <div className="dots">{feat.map((_, i) => <span key={i} className={i === k % feat.length ? 'on' : ''} />)}</div>}
       </div>
-      <div className="hint">In evidenza · tocca la carta per scorrere, il nome per i dettagli</div>
+      <div className="hint">Tocca la carta per scorrere, il nome per i dettagli</div>
     </section>}
 
     {prob.length > 0 && <button className="fixrow" onClick={() => go('d', prob.length === 1 ? `deck:${prob[0].id}` : undefined)}>

@@ -18,6 +18,7 @@ import type { Go } from '../../pages/tabs';
 import { useWide } from '../../components/useWide';
 import CardDetail from '../card/CardDetail';
 import { refreshDeckOnce, usePricesUpdated } from '../../services/autoRefresh';
+import { Card3D, big, glow } from '../../components/CardArt';
 type Any = any;
 // gruppi per tipo, come nei deckbuilder (una creatura artefatto sta tra le creature)
 const GROUPS: [string, RegExp][] = [['Creature', /Creature/], ['Planeswalker', /Planeswalker/], ['Battaglie', /Battle/], ['Terre', /Land/],
@@ -107,7 +108,21 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
 
   return <><div className="split"><div>
     <button className="ghost backlink" onClick={back}><Icon name="back" />Mazzi</button>
-    <div className="card deckhead"><Spine ci={ci} />
+    {/* telefono: comandante in 3D con l'aura e sfondo sfumato nei suoi colori */}
+    <div className="deckbg m-only" style={{ '--glow': glow(ci) } as React.CSSProperties} />
+    <section className="dhero m-only" style={{ '--glow': glow(ci) } as React.CSSProperties}>
+      <div className={'dcmd n' + cmds.length}><span className="aura" />
+        {cmds.length ? cmds.map((c: Any) => <Card3D key={c.oracle_id} src={big(c.image, 'normal')} onClick={() => setDet(keyOf(c))} />)
+          : <div className="empty-cmd">Nessun comandante: cercalo qui sotto e tocca “Comandante”</div>}</div>
+      <h2>{d.name}</h2>
+      <small>{cmds.map((c: Any) => c.name).join(' + ') || 'Senza comandante'}</small>
+      <div className="pills"><span className={'pill ' + (cls === 'ok' ? 'ok' : cls === 'er' ? 'er' : cls === 'wa' ? 'wa' : 'm')}>{status}</span><span className="pill m">{d.mode === 'physical' ? 'fisico' : 'virtuale'}{d.archived ? ', archiviato' : ''}</span>
+        {physical && <span className={'pill ' + (d.missing ? 'wa' : 'ok')}>{d.missing ? (d.missing === 1 ? 'manca 1 copia' : `mancano ${d.missing} copie`) : 'assemblabile'}</span>}
+        {problems.length > 0 && <span className="pill er">{problems.length === 1 ? '1 problema' : `${problems.length} problemi`} di regole</span>}</div>
+      <div className="dcount"><b>{v.count}</b>/ 100{d.value && <span>· {pricing && !d.value.oldest ? '…' : eur(d.value.eur)}</span>}</div>
+      <div className="progress"><span style={{ width: Math.min(100, v.count) + '%' }} /></div>
+    </section>
+    <div className="card deckhead d-only"><Spine ci={ci} />
       <h2>{d.name}</h2>
       <div className="bar" style={{ margin: '0 0 10px' }}><span className={'t ' + cls}>{status}</span><span className="t m">{d.mode === 'physical' ? 'fisico' : 'virtuale'}{d.archived ? ', archiviato' : ''}</span>
         {physical && <span className={'t ' + (d.missing ? 'wa' : 'ok')}>{d.missing ? (d.missing === 1 ? 'manca 1 copia' : `mancano ${d.missing} copie`) : 'assemblabile'}</span>}</div>
