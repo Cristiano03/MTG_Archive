@@ -471,10 +471,17 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   background: linear-gradient(90deg, var(--glow)); filter: blur(24px);
   -webkit-mask: radial-gradient(42% 40% at 50% 50%, #000, transparent); mask: radial-gradient(42% 40% at 50% 50%, #000, transparent); }
 .fan { position: relative; width: 62%; max-width: 260px; aspect-ratio: 63 / 88; cursor: pointer; }
-.fan .front { position: absolute; inset: 0; z-index: 2; }
-.fan .back { position: absolute; inset: 0; width: 100%; border-radius: 4.6% / 3.3%; filter: brightness(.55); box-shadow: 0 16px 30px -12px rgba(0, 0, 0, .8); transition: transform .3s; }
-.fan .back.b1 { transform: translateX(-30%) rotate(-9deg) scale(.86); }
-.fan .back.b2 { transform: translateX(30%) rotate(9deg) scale(.86); }
+.fslot { position: absolute; inset: 0; transition: transform .6s cubic-bezier(.3, .9, .3, 1), filter .6s ease, z-index 0s .25s; will-change: transform; }
+.fslot.front { z-index: 3; transform: none; }
+.fslot.next { z-index: 1; transform: translateX(30%) rotate(9deg) scale(.86); filter: brightness(.55); }
+.fslot.prev { z-index: 2; transform: translateX(-30%) rotate(-9deg) scale(.86); filter: brightness(.55); }
+.fslot:not(.front) .card3d { animation: none; pointer-events: none; box-shadow: 0 16px 30px -12px rgba(0, 0, 0, .8); }
+.fslot.front .card3d { animation: float 7s ease-in-out infinite, cardin .6s cubic-bezier(.3, .9, .3, 1); }
+.fslot.front .card3d.tilt { animation: none; }
+@keyframes cardin { from { transform: perspective(900px) translateY(-14px) rotateY(-24deg) scale(.96); } }
+.ftext { display: flex; flex-direction: column; align-items: center; animation: textin .45s ease; }
+@keyframes textin { from { opacity: 0; transform: translateY(8px); } }
+.featured::before { transition: background .6s; }
 .pricechip { margin-top: 12px; padding: 5px 12px; border-radius: 10px; background: var(--sheet); font-weight: 600; font-size: 15px; }
 .dots { display: flex; gap: 5px; margin-top: 12px; }
 .dots span { width: 6px; height: 6px; border-radius: 3px; background: #5b6168; transition: width .2s; }

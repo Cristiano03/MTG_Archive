@@ -48,14 +48,17 @@ export default function HomeMobile({ s, wish, pricing, onRefresh, go }: { s: Any
     </section>
 
     {f && <section className="featured" style={{ '--glow': glow(f.ci) } as React.CSSProperties}>
+      {/* le carte restano le stesse e cambiano solo posto: davanti, dietro a destra (la prossima), dietro a sinistra (la precedente) */}
       <div className="fan" onClick={() => setK(k + 1)}>
-        {feat.length > 1 && [1, 2].slice(0, feat.length - 1).map(o => { const x = feat[(k + o) % feat.length]; return <img key={o} className={'back b' + o} src={x.img} alt="" />; })}
-        <Card3D key={f.name} src={f.img} className="front" />
+        {feat.map((x, i) => { const n = feat.length, p = (i - (k % n) + n) % n, slot = p === 0 ? 'front' : p === 1 && n > 2 ? 'next' : 'prev';
+          return <div key={x.name} className={'fslot ' + slot}><Card3D src={x.img} /></div>; })}
       </div>
+      <div className="ftext" key={f.name}>
       <SplitName name={f.name} />
       <ColorTags ci={f.ci} />
       {f.price != null && <span className="pricechip">{eur(f.price)}</span>}
       {feat.length > 1 && <div className="dots">{feat.map((_, i) => <span key={i} className={i === k % feat.length ? 'on' : ''} />)}</div>}
+      </div>
       <div className="hint">In evidenza · tocca la carta per scorrere</div>
     </section>}
 
