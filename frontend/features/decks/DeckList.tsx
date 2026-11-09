@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, fail } from '../../services/api';
 import Icon from '../../components/Icon';
 import { Spine, Pips } from '../../components/Mana';
@@ -12,11 +12,12 @@ type Any = any;
 export default function DeckList({ creating: startCreating, openId, go }: { creating?: boolean; openId?: number; go: Go }) {
   const [list, setList] = useState<Any[]>([]), [open, setOpen] = useState<number | null>(null), [loaded, setLoaded] = useState(false);
   const [creating, setCreating] = useState(!!startCreating), [name, setName] = useState(''), [mode, setMode] = useState<'physical' | 'virtual'>('physical');
+  const openRef = useRef<number | null>(null); useEffect(() => { openRef.current = open; }, [open]);
   const load = useCallback(() => api('/decks').then(x => { setList(x); setLoaded(true); }).catch(fail), []);
   useEffect(() => { load(); }, [load]);
   // il mazzo aperto è una voce della cronologia: funzionano il tasto/gesto "indietro" del telefono e del browser
   useEffect(() => {
-    const onPop = (e: PopStateEvent) => { const id = e.state?.deck; setOpen(id ? Number(id) : null); if (!id) load(); window.scrollTo({ top: 0 }); };
+    const onPop = (e: PopStateEvent) => { const id = e.state?.deck; if (id && Number(id) === openRef.current) return; setOpen(id ? Number(id) : null); if (!id) load(); window.scrollTo({ top: 0 }); };
     addEventListener('popstate', onPop); return () => removeEventListener('popstate', onPop);
   }, [load]);
   const openDeck = (id: number) => { history.pushState({ deck: id }, ''); setOpen(id); window.scrollTo({ top: 0 }); };

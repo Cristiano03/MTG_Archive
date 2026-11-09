@@ -13,15 +13,15 @@ const ago = (d: string) => { const n = Math.floor((Date.now() - new Date(d).getT
 // Home del telefono: valore, carte in evidenza (i comandanti dei mazzi), cosa sistemare, identità di colore, mazzi, desideri, ultime aggiunte.
 export default function HomeMobile({ s, wish, pricing, onRefresh, go }: { s: Any; wish: Any[] | null; pricing: boolean; onRefresh: () => void; go: Go }) {
   const [items, setItems] = useState<Any[]>([]), [decks, setDecks] = useState<Any[]>([]), [feat, setFeat] = useState<Any[]>([]), [k, setK] = useState(0);
-  const [col, setCol] = useState<string | null>(null), [card, setCard] = useState<Any | null>(null);
+  const [col, setCol] = useState<string | null>(null), [card, setCard] = useState<Any | null>(null), [peek, setPeek] = useState<Any | null>(null);
   const load = () => Promise.all([api('/collection').then(setItems), api('/decks').then(setDecks)]).catch(() => {});
   useEffect(() => { load(); }, []);
 
   // in evidenza: i comandanti dei mazzi attivi (al massimo 3); senza mazzi, le carte di valore più alto
   useEffect(() => {
     const names = [...new Set(decks.filter(d => !d.archived && d.commanders).map(d => String(d.commanders).split(' + ')[0]))].slice(0, 3);
-    if (names.length) { sfCollection(names.map(name => ({ name }))).then(cs => setFeat(cs.map(c => ({ name: c.name, img: imgOf(c), ci: c.color_identity, price: c.prices?.eur ?? c.prices?.eur_foil })))).catch(() => {}); return; }
-    setFeat([...items].filter(i => i.price != null).sort((a, b) => b.price - a.price).slice(0, 3).map(i => ({ name: i.name, img: big(i.image_small), ci: i.color_identity, price: i.price, item: i })));
+    if (names.length) { sfCollection(names.map(name => ({ name }))).then(cs => setFeat(cs.map(c => ({ id: c.id, name: c.name, img: imgOf(c), ci: c.color_identity, price: c.prices?.eur ?? c.prices?.eur_foil })))).catch(() => {}); return; }
+    setFeat([...items].filter(i => i.price != null).sort((a, b) => b.price - a.price).slice(0, 3).map(i => ({ id: i.printing_id, name: i.name, img: big(i.image_small), ci: i.color_identity, price: i.price, item: i })));
   }, [decks, items]);
 
   // copie per colore dell'identità (una carta multicolore conta per ogni suo colore)
@@ -53,13 +53,13 @@ export default function HomeMobile({ s, wish, pricing, onRefresh, go }: { s: Any
         {feat.map((x, i) => { const n = feat.length, p = (i - (k % n) + n) % n, slot = p === 0 ? 'front' : p === 1 && n > 2 ? 'next' : 'prev';
           return <div key={x.name} className={'fslot ' + slot}><Card3D src={x.img} /></div>; })}
       </div>
-      <div className="ftext" key={f.name}>
+      <div className="ftext" key={f.name} role="button" tabIndex={0} aria-label={'Apri ' + f.name} onClick={() => setPeek(f)}>
       <SplitName name={f.name} />
       <ColorTags ci={f.ci} />
       {f.price != null && <span className="pricechip">{eur(f.price)}</span>}
       {feat.length > 1 && <div className="dots">{feat.map((_, i) => <span key={i} className={i === k % feat.length ? 'on' : ''} />)}</div>}
       </div>
-      <div className="hint">In evidenza · tocca la carta per scorrere</div>
+      <div className="hint">In evidenza · tocca la carta per scorrere, il nome per i dettagli</div>
     </section>}
 
     {prob.length > 0 && <button className="fixrow" onClick={() => go('d', prob.length === 1 ? `deck:${prob[0].id}` : undefined)}>
@@ -99,5 +99,6 @@ export default function HomeMobile({ s, wish, pricing, onRefresh, go }: { s: Any
         {i.price != null && <span className="pr">{eur(i.price)}</span>}</button>)}</div></>}
 
     {card && <CardDetail item={card} onClose={() => setCard(null)} onChanged={load} />}
+    {peek && <CardDetail printingId={peek.id} name={peek.name} onClose={() => setPeek(null)} onChanged={load} />}
   </div>;
 }

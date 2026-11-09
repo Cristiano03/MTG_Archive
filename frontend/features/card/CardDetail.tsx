@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { api, fail } from '../../services/api';
 import { sfGet, printsOfCards } from '../../services/scryfall';
@@ -17,18 +17,28 @@ const LEG_IT: Record<string, string> = { legal: 'Legale', not_legal: 'Non legale
 const priceOf = (c: Any, finish = 'nonfoil') => { const p = c?.prices ?? {}; const x = finish === 'nonfoil' ? p.eur ?? p.eur_foil : p.eur_foil ?? p.eur; return x == null ? null : Number(x); };
 export const langIt = (l: string) => LANG_IT[l] ?? l.toUpperCase();
 
-// Scheda della carta (telefono): carta grande in 3D, le tue copie, poi Carta / Stampe / Nei mazzi; in basso desideri e "Aggiungi a un mazzo".
-export default function CardDetail({ item, onClose, onChanged }: { item: Any; onClose: () => void; onChanged?: () => void }) {
+// id Scryfall dall'indirizzo dell'immagine (…/small/front/a/b/<id>.jpg), per le righe che non hanno la stampa (es. desideri "qualsiasi stampa")
+export const idFromImage = (src?: string | null) => src?.match(/\/([0-9a-f-]{36})\.(?:jpg|png)/)?.[1];
+export type CardCtx = 'collection' | 'deck' | 'wish' | 'search';
+
+// Scheda della carta (telefono), la stessa in ogni sezione: carta grande in 3D, le tue copie, poi Carta / Stampe / Nei mazzi.
+// ctx = sezione da cui si apre: le opzioni proprie della sezione arrivano da panel (riquadro sotto il prezzo) e bar (pulsanti in basso);
+// in Collezione le copie si modificano, altrove si vedono soltanto.
+export default function CardDetail({ item: it, card: given, printingId, name: nm, ctx = 'collection', panel, bar, onClose, onChanged }: {
+  item?: Any; card?: Any; printingId?: string; name?: string; ctx?: CardCtx; panel?: ReactNode; bar?: ReactNode; onClose: () => void; onChanged?: () => void }) {
+  const item = { name: nm ?? it?.name ?? given?.name ?? '', printing_id: printingId ?? it?.printing_id ?? given?.id, image_small: it?.image_small ?? imgOf(given, 'small'), color_identity: it?.color_identity ?? given?.color_identity, id: it?.id ?? 0 };
+  const editable = ctx === 'collection';
   const [card, setCard] = useState<Any | null>(null), [shown, setShown] = useState<Any | null>(null), [err, setErr] = useState('');
   const [items, setItems] = useState<Any[]>([]), [decks, setDecks] = useState<Any[]>([]), [prints, setPrints] = useState<Any[] | null>(null);
   const [tab, setTab] = useState<'c' | 's' | 'd'>('c'), [edit, setEdit] = useState<Any | null>(null), [toDeck, setToDeck] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const load = () => Promise.all([api('/collection').then(setItems), api('/decks').then(setDecks)]).catch(() => {});
-  useEffect(() => { load(); sfGet('/cards/' + item.printing_id).then(c => { if (!c) throw new Error('Carta non trovata su Scryfall'); setCard(c); setShown(c); }).catch(e => setErr(e.message)); }, [item.printing_id]);
+  useEffect(() => { load(); if (given?.oracle_id) { setCard(given); setShown(given); return; }
+    (item.printing_id ? sfGet('/cards/' + item.printing_id) : sfGet('/cards/named?exact=' + encodeURIComponent(item.name))).then(c => { if (!c) throw new Error('Carta non trovata su Scryfall'); setCard(c); setShown(c); }).catch(e => setErr(e.message)); }, [item.printing_id]); // eslint-disable-line
   useEffect(() => { if (tab === 's' && !prints && card?.oracle_id) printsOfCards([card.oracle_id]).then(setPrints).catch(() => setPrints([])); }, [tab, card]);
   // la scheda è una voce della cronologia: il gesto "indietro" la chiude
   useEffect(() => {
-    history.pushState({ ...(history.state ?? {}), card: item.id }, ''); const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    history.pushState({ ...(history.state ?? {}), card: item.printing_id ?? 1 }, ''); const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
     const pop = () => onClose(); addEventListener('popstate', pop);
     return () => { removeEventListener('popstate', pop); document.body.style.overflow = prev; };
   }, []); // eslint-disable-line
@@ -74,15 +84,16 @@ export default function CardDetail({ item, onClose, onChanged }: { item: Any; on
 
     <div className="cd-body">
       {err && <p className="er">{err}</p>}
-      <section className="panel">
+      {panel}
+      {(editable || mine.length > 0) && <section className="panel">
         <div className="ph"><b>Le tue copie</b><small>{copies} {copies === 1 ? 'copia' : 'copie'}{value > 0 ? ` · ${eur(value)}` : ''}</small></div>
-        {mine.map(i => <button key={i.id} className="copyrow" onClick={() => setEdit(i)}>
+        {mine.map(i => <button key={i.id} className="copyrow" disabled={!editable} onClick={() => setEdit(i)}>
           <span className="qbox">{i.qty}×</span>
           <span className="g"><b>{FIN_IT[i.finish]} · {i.condition === 'M' ? 'MT' : i.condition} · {langIt(i.lang)}</b>
             <small>{i.assigned > 0 ? `Nel mazzo ${(i.decks ?? []).map(deckName).filter(Boolean).join(', ')}` : i.qty > 1 ? `${i.free} libere` : 'Libera'}{i.set_code !== c?.set ? ` · ${i.set_code.toUpperCase()}` : ''}</small></span>
-          {i.price != null && <span className="pr">{eur(i.price)}</span>}<Icon name="next" /></button>)}
-        <button className="copyrow add" disabled={!c} onClick={addCopy}><Icon name="plus" /><span className="g"><b>Aggiungi una copia</b>{shown && shown.id !== item.printing_id && <small>{shown.set_name}</small>}</span></button>
-      </section>
+          {i.price != null && <span className="pr">{eur(i.price)}</span>}{editable && <Icon name="next" />}</button>)}
+        {editable && <button className="copyrow add" disabled={!c} onClick={addCopy}><Icon name="plus" /><span className="g"><b>Aggiungi una copia</b>{shown && shown.id !== item.printing_id && <small>{shown.set_name}</small>}</span></button>}
+      </section>}
 
       <div className="tabs3" role="tablist">{([['c', 'Carta'], ['s', 'Stampe'], ['d', 'Nei mazzi']] as const).map(([k, l]) =>
         <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>
@@ -129,9 +140,9 @@ export default function CardDetail({ item, onClose, onChanged }: { item: Any; on
       </>}
     </div>
 
-    <div className="cd-bar">
+    {bar !== undefined ? bar && <div className="cd-bar">{bar}</div> : <div className="cd-bar">
       <button className="icon sq" aria-label="Aggiungi ai desideri" onClick={addWish}><Icon name="heart" /></button>
-      <button className="b" disabled={!mine.length} onClick={() => setToDeck(true)}><Icon name="plus" />Aggiungi a un mazzo</button></div>
+      <button className="b" disabled={!mine.length} onClick={() => setToDeck(true)}><Icon name="plus" />Aggiungi a un mazzo</button></div>}
 
     {edit && <EditSheet item={edit} decks={decks} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); changed(); }} />}
     {toDeck && <Sheet title="Aggiungi a un mazzo" sub={item.name} onClose={() => setToDeck(false)}>

@@ -3,13 +3,16 @@ import { scry } from '../services/api';
 import { eurOf } from '../services/scryfall';
 import { eur } from './Price';
 import { useCardPreview } from './CardPreview';
+import { useWide } from './useWide';
+import CardDetail from '../features/card/CardDetail';
 type Any = any;
 const img = (c: Any) => c.image_uris?.small ?? c.card_faces?.[0]?.image_uris?.small;
 // Risultati di Scryfall per il testo scritto nella ricerca della pagina, con i pulsanti per aggiungere (actions).
 // mode 'prints' = ogni stampa (collezione), 'cards' = una riga per carta (mazzi, desideri).
 // expanded/below: contenuto aperto sotto una riga (es. la scelta della stampa)
-export default function ScryResults({ q, mode, title, actions, limit = 8, expanded, below }: { q: string; mode: 'prints' | 'cards'; title: string; actions: (c: Any) => ReactNode; limit?: number; expanded?: string | null; below?: (c: Any) => ReactNode }) {
-  const [r, setR] = useState<Any[] | null>(null), [all, setAll] = useState(false);
+// Sul telefono toccare la riga apre la scheda della carta; bar(c, chiudi) = pulsanti della sezione in fondo alla scheda (di base: actions)
+export default function ScryResults({ q, mode, title, actions, limit = 8, expanded, below, bar }: { q: string; mode: 'prints' | 'cards'; title: string; actions: (c: Any) => ReactNode; limit?: number; expanded?: string | null; below?: (c: Any) => ReactNode; bar?: (c: Any, close: () => void) => ReactNode }) {
+  const [r, setR] = useState<Any[] | null>(null), [all, setAll] = useState(false), [open, setOpen] = useState<Any | null>(null), isWide = useWide();
   const { bind, preview } = useCardPreview();
   const query = q.trim();
   useEffect(() => {
@@ -24,7 +27,7 @@ export default function ScryResults({ q, mode, title, actions, limit = 8, expand
   return <div className="list found">
     <div className="listhead">{title}{!r && <span className="n">cerco…</span>}</div>
     {r && !r.length && <div className="item"><span className="m">Nessuna carta su Scryfall per “{query}”. Prova con il nome inglese.</span></div>}
-    {list.map(c => [<div className="item" key={c.id}>
+    {list.map(c => [<div className={'item' + (isWide ? '' : ' tap')} key={c.id} onClick={isWide ? undefined : e => { if (!(e.target as HTMLElement).closest('button')) setOpen(c); }}>
       <img className="thumb" alt="" loading="lazy" src={img(c)} {...bind(img(c))} />
       <div className="g"><div className="name">{c.name}</div>
         <div className="meta"><span>{c.set.toUpperCase()} {c.collector_number}</span>{eurOf(c) != null && <span>{eur(eurOf(c))}</span>}</div></div>
@@ -32,5 +35,6 @@ export default function ScryResults({ q, mode, title, actions, limit = 8, expand
       expanded === c.id && below ? <div className="itemx" key={c.id + '-x'}>{below(c)}</div> : null])}
     {r && r.length > limit && !all && <button className="item ghost" style={{ justifyContent: 'center', minHeight: 48 }} onClick={() => setAll(true)}>Mostra tutte ({r.length})</button>}
     {preview}
+    {open && <CardDetail card={open} ctx="search" onClose={() => setOpen(null)} bar={bar ? bar(open, () => history.back()) : <div className="cd-acts">{actions(open)}</div>} />}
   </div>;
 }

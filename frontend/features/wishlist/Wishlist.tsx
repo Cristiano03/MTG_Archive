@@ -9,6 +9,8 @@ import Menu from '../../components/Menu';
 import { toast } from '../../components/Toast';
 import { useCardPreview } from '../../components/CardPreview';
 import { eur } from '../../components/Price';
+import { useWide } from '../../components/useWide';
+import CardDetail, { idFromImage } from '../card/CardDetail';
 type Any = any;
 const PRIO: [string, string][] = [['', 'Nessuna'], ['1', 'Alta'], ['2', 'Media'], ['3', 'Bassa']];
 
@@ -19,6 +21,8 @@ export default function Wishlist() {
   const [q, setQ] = useState(''), [choosing, setChoosing] = useState<Any | null>(null), [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<'buy' | 'print' | null>(null);
   const { bind, preview } = useCardPreview();
+  // telefono: toccare una riga apre la scheda della carta con le opzioni della lista
+  const isWide = useWide(), [det, setDet] = useState<number | null>(null);
   const load = useCallback(() => api('/wishlist').then(x => { setRows(x); setLoaded(true); }).catch(fail), []);
   useEffect(() => { load(); }, [load]);
   const act = async (f: () => Promise<unknown>) => { try { await f(); } catch (e) { fail(e); } load(); };
@@ -34,7 +38,7 @@ export default function Wishlist() {
   const setPrint = (r: Any, p: Any | null) => act(async () => { await api(`/wishlist/${r.id}/printing`, 'POST', { printing_id: p?.id ?? null }); setMode(null); });
   const prices = () => act(async () => { const r = await api('/wishlist/prices', 'POST'); toast(`Prezzi aggiornati per ${r.updated} carte`); });
   const toBuy = rows.reduce((t, r) => t + r.to_buy, 0), cost = rows.reduce((t, r) => t + (r.price_ref ? r.to_buy * Number(r.price_ref) : 0), 0);
-  const toggle = (r: Any) => { setOpen(open === r.id ? null : r.id); setMode(null); };
+  const toggle = (r: Any) => { if (!isWide) { setDet(r.id); setMode(null); return; } setOpen(open === r.id ? null : r.id); setMode(null); };
 
   return <>
     <div className="toolbar">
@@ -46,7 +50,9 @@ export default function Wishlist() {
           { icon: 'download', label: 'Esporta la lista', sub: 'Testo: “2 Sol Ring”', onClick: () => download('/export/wishlist.txt') },
         ]}><Icon name="dots" /></Menu></div>
     </div>
-    {q.trim().length >= 2 && <ScryResults q={q} mode="cards" title="Scegli la carta" actions={c => <button className="b small" onClick={() => pickCard(c)}>Scegli</button>} />}
+    {q.trim().length >= 2 && <ScryResults q={q} mode="cards" title="Scegli la carta" actions={c => <button className="b small" onClick={() => pickCard(c)}>Scegli</button>}
+      bar={(c, close) => <><button className="wide" onClick={() => { close(); pickCard(c); }}><Icon name="edit" />Scegli la stampa</button>
+        <button className="b" onClick={() => act(async () => { await api('/wishlist', 'POST', { printing_id: c.id, any: true, qty: 1 }); toast(`${c.name} nella lista`); setQ(''); close(); })}><Icon name="heart" />Aggiungi alla lista</button></>} />}
     {choosing && <PrintPicker oracleId={choosing.oracle_id ?? choosing.card_faces?.[0]?.oracle_id} name={choosing.name} busy={busy} onPick={add} onCancel={() => setChoosing(null)} />}
 
     {rows.length > 0 && <div className="card" style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
@@ -78,6 +84,23 @@ export default function Wishlist() {
     </Fragment>)}</div>}
     {loaded && !rows.length && !choosing && q.trim().length < 2 && <div className="card empty"><b>Lista vuota</b><p className="m">Scrivi qui sopra il nome di una carta che cerchi, oppure apri un mazzo incompleto e usa “Mancanti → Mettile nella lista dei desideri”.</p></div>}
     {preview}
+    {det && (() => { const r = rows.find(x => x.id === det); if (!r) return null;
+      return <CardDetail key={r.id} printingId={r.printing_id ?? idFromImage(r.image)} name={r.name} ctx="wish" onClose={() => { setDet(null); setMode(null); }} onChanged={load}
+        panel={<section className="panel">
+          <div className="ph"><b>Nella lista dei desideri</b><small className={r.to_buy ? 'wa' : 'ok'}>{r.to_buy ? `da comprare ${r.to_buy}` : 'coperta dalle copie libere'}</small></div>
+          <div className="qtyrow" style={{ margin: '6px 0' }}><div className="g"><b>Copie desiderate</b>{r.owned > 0 && <small className="m" style={{ display: 'block' }}>Ne hai {r.owned}, {r.free} {r.free === 1 ? 'libera' : 'libere'}</small>}</div>
+            <Stepper value={r.qty_wanted} label={'Copie desiderate di ' + r.name} onPlus={() => patch(r, { qty_wanted: r.qty_wanted + 1 })} onMinus={() => r.qty_wanted > 1 && patch(r, { qty_wanted: r.qty_wanted - 1 })} /></div>
+          <h4 className="lbl" style={{ marginTop: 10 }}>Priorità</h4>
+          <div className="pillrow" style={{ marginTop: 0 }}>{PRIO.map(([v, l]) => <button key={v} className={'pchip' + (String(r.priority ?? '') === v ? ' on' : '')} onClick={() => patch(r, { priority: v ? Number(v) : null })}>{l}</button>)}</div>
+          <div className="kvlist links" style={{ padding: 0, marginTop: 10 }}>
+            <button onClick={() => setMode(mode === 'print' ? null : 'print')}><span>Stampa</span><span>{r.printing_id ? `${r.set_code?.toUpperCase()} · #${r.collector_number}` : 'Qualsiasi'}</span><Icon name={mode === 'print' ? 'close' : 'next'} /></button>
+            <div className="notein"><span>Nota</span><input key={r.id} defaultValue={r.note ?? ''} placeholder="Aggiungi" maxLength={500} onBlur={e => e.target.value !== (r.note ?? '') && patch(r, { note: e.target.value })} /></div>
+            {r.price_ref != null && <div><span>Prezzo di riferimento</span><span>{eur(r.price_ref)}</span></div>}</div>
+          {mode === 'print' && <PrintPicker oracleId={r.oracle_id} name={r.name} onPick={p => setPrint(r, p)} onCancel={() => setMode(null)} />}
+          {mode === 'buy' && <Purchase r={r} done={m => { setMode(null); toast(m); load(); history.back(); }} />}
+        </section>}
+        bar={<><button className="icon sq" aria-label={'Togli ' + r.name + ' dalla lista'} onClick={() => { if (confirm(`Togliere ${r.name} dalla lista?`)) act(async () => { await api('/wishlist/' + r.id, 'DELETE'); toast(`${r.name} tolta dalla lista`); history.back(); }); }}><Icon name="trash" /></button>
+          <button className="b" onClick={() => setMode(mode === 'buy' ? null : 'buy')}><Icon name="check" />{mode === 'buy' ? 'Annulla acquisto' : 'Ho comprato'}</button></>} />; })()}
   </>;
 }
 

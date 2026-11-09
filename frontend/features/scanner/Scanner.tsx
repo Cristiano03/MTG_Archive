@@ -6,6 +6,7 @@ import Stepper from '../../components/Stepper';
 import ActionBar from '../../components/ActionBar';
 import Sheet from '../../components/Sheet';
 import Camera, { type CameraHandle } from './Camera';
+import CardDetail from '../card/CardDetail';
 import { readCard, loadOcr, stopOcr } from './ocr';
 import { cleanOcrName, nameCertain, parseFooter, pickPrinting, similarity } from './recognize';
 import { img, matchName, printingsOf, type SfCard } from './catalog';
@@ -165,14 +166,15 @@ export default function Scanner() {
 
 // Scheda della carta riconosciuta (scansione singola)
 function SingleSheet({ it, onChange, onAdd, onClose }: { it: Item; onChange: (p: Partial<Item>) => void; onAdd: () => void; onClose: () => void }) {
-  const [prints, setPrints] = useState<SfCard[] | null>(null), [fixing, setFixing] = useState(false);
+  const [prints, setPrints] = useState<SfCard[] | null>(null), [fixing, setFixing] = useState(false), [peek, setPeek] = useState(false);
   useEffect(() => { printingsOf(it.card.oracle_id, it.card.lang).then(setPrints).catch(() => setPrints([it.card])); }, [it.card.oracle_id]);
   const ok = it.nameOk && it.printOk;
   return <Sheet title={ok ? 'Carta riconosciuta' : 'Controlla la carta'} onClose={onClose}
     actions={<><button onClick={onClose}>Annulla</button><button className="b" onClick={onAdd}><Icon name="check" />Aggiungi{it.qty > 1 ? ` ${it.qty}` : ''}</button></>}>
     {fixing ? <><Search mode="prints" autoFocus action="Usa" onPick={c => { onChange({ card: slim(c), nameOk: true, printOk: true, finish: c.finishes?.[0] ?? 'nonfoil' }); setFixing(false); }} />
       <button className="ghost" onClick={() => setFixing(false)}>Torna alla carta</button></> : <>
-      <img className="big-card" alt="" src={img(it.card, true)} />
+      <img className="big-card" alt="Apri la scheda della carta" src={img(it.card, true)} onClick={() => setPeek(true)} />
+      {peek && <CardDetail printingId={it.card.id} name={it.card.name} ctx="search" bar={null} onClose={() => setPeek(false)} />}
       <h3 style={{ textAlign: 'center', margin: '0 0 2px' }}>{cardName(it.card)}</h3>
       <p className="m" style={{ textAlign: 'center', margin: '0 0 10px' }}>{it.card.set_name} · {it.card.set.toUpperCase()} {it.card.collector_number}</p>
       {!it.nameOk && <p className="wa" style={{ margin: '0 0 8px' }}>Lettura incerta (“{it.ocr}”): controlla che sia la carta giusta.</p>}
@@ -189,13 +191,14 @@ function SingleSheet({ it, onChange, onAdd, onClose }: { it: Item; onChange: (p:
 }
 
 function ItemRow({ it, upd, del }: { it: Item; upd: (p: Partial<Item>) => void; del: () => void }) {
-  const [prints, setPrints] = useState<SfCard[] | null>(null), [fixing, setFixing] = useState(false);
+  const [prints, setPrints] = useState<SfCard[] | null>(null), [fixing, setFixing] = useState(false), [peek, setPeek] = useState(false);
   const loadPrints = () => { if (!prints) printingsOf(it.card.oracle_id, it.card.lang).then(setPrints).catch(() => setPrints([it.card])); };
   useEffect(() => { if (!it.printOk) loadPrints(); }, []); // su iPhone il menu si apre subito: le stampe devono essere già pronte
   const ok = it.nameOk && it.printOk;
   return <>
     <div className="item">
-      <img className="thumb l" alt="" src={img(it.card)} />
+      <img className="thumb l" alt="Apri la scheda della carta" src={img(it.card)} onClick={() => setPeek(true)} />
+      {peek && <CardDetail printingId={it.card.id} name={it.card.name} ctx="search" bar={null} onClose={() => setPeek(false)} />}
       <div className="g"><div className="name">{cardName(it.card)}</div>
         <div className="meta"><span>{it.card.set.toUpperCase()} {it.card.collector_number}</span>{it.card.lang !== 'en' && <span>{it.card.lang}</span>}</div>
         <div className="meta">{ok ? <span className="ok">confermata</span> : <>{!it.nameOk && <span className="wa">nome incerto: letto “{it.ocr}”</span>}{!it.printOk && <span className="wa">stampa da scegliere</span>}</>}</div></div>

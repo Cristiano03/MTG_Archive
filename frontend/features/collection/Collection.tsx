@@ -197,6 +197,8 @@ export default function Collection({ preset, go }: { preset?: Preset; go: Go }) 
 
     {q.trim().length >= 2 && !sel && <ScryResults q={q} mode="cards" title="Aggiungi alla collezione" expanded={printsOf}
       below={c => <PrintPicker any={false} oracleId={c.oracle_id ?? c.card_faces?.[0]?.oracle_id} name={c.name} onPick={p => p && add(p)} onCancel={() => setPrintsOf(null)} />}
+      bar={(c, close) => <><button className="icon sq" aria-label="Aggiungi ai desideri" onClick={() => api('/wishlist', 'POST', { printing_id: c.id, qty: 1 }).then(() => toast(`${c.name} nella lista dei desideri`)).catch(fail)}><Icon name="heart" /></button>
+        <button className="b" onClick={() => { add(c); close(); }}><Icon name="plus" />Aggiungi alla collezione</button></>}
       actions={c => <><button className={'small' + (printsOf === c.id ? ' soft' : '')} onClick={() => setPrintsOf(printsOf === c.id ? null : c.id)}>Stampe</button>
         <button className="b icon" aria-label={`Aggiungi ${c.name} (${c.set.toUpperCase()} ${c.collector_number})`} onClick={() => add(c)}><Icon name="plus" /></button></>} />}
     {loaded && !items.length && !q && <div className="card empty"><b>La collezione è vuota</b><p className="m">Scrivi il nome di una carta nella casella in alto e toccala per aggiungerla, oppure:</p>

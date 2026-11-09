@@ -15,6 +15,8 @@ import DeckText from './DeckText';
 import Check from '../../components/Check';
 import Menu from '../../components/Menu';
 import type { Go } from '../../pages/tabs';
+import { useWide } from '../../components/useWide';
+import CardDetail from '../card/CardDetail';
 type Any = any;
 // gruppi per tipo, come nei deckbuilder (una creatura artefatto sta tra le creature)
 const GROUPS: [string, RegExp][] = [['Creature', /Creature/], ['Planeswalker', /Planeswalker/], ['Battaglie', /Battle/], ['Terre', /Land/],
@@ -28,6 +30,8 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
   const [d, setD] = useState<Any>(), [v, setV] = useState<Any>(), [text, setText] = useState(false);
   const [sort, setSort] = usePref<Sort>('sort.deck', { key: 'name', desc: false }), [color, setColor] = useState<ColorFilter>(NO_COLOR), [q, setQ] = useState('');
   const [sel, setSel] = useState<Set<string> | null>(null); // chiavi oracle_id|comandante; null = modalità normale
+  // telefono: toccare una carta apre la sua scheda con le opzioni del mazzo
+  const isWide = useWide(), [det, setDet] = useState<string | null>(null);
   const keyOf = (c: Any) => c.oracle_id + '|' + (c.is_commander ? 1 : 0);
   const toggle = (k: string) => setSel(cur => { const n = new Set(cur); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const load = useCallback(async () => { try { const [a, b] = await Promise.all([api('/decks/' + id), api(`/decks/${id}/validation`)]); setD(a); setV(b); return a; } catch (e) { fail(e); } }, [id]);
@@ -60,6 +64,13 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
     act(async () => { await api(`/decks/${id}/cards/bulk-remove`, 'POST', { items: rows.map((c: Any) => ({ oracle_id: c.oracle_id, is_commander: c.is_commander })) }); setSel(null); toast(`${rows.length} ${rows.length === 1 ? 'carta tolta' : 'carte tolte'}`); });
   };
   const rename = () => { const n = prompt('Nuovo nome del mazzo', d?.name)?.trim(); if (n && n !== d?.name) act(() => api('/decks/' + id, 'PATCH', { name: n })); };
+  const wishOne = (c: Any) => act(async () => { await api('/wishlist', 'POST', { printing_id: c.printing_id, any: true, qty: 1 }); toast(`${c.name} nella lista dei desideri`); });
+  const removeOne = (c: Any) => { if (!confirm(`Togliere ${c.name} dal mazzo?${d?.mode === 'physical' ? ' Le copie tornano libere in collezione.' : ''}`)) return;
+    act(async () => { await api(`/decks/${id}/cards/bulk-remove`, 'POST', { items: [{ oracle_id: c.oracle_id, is_commander: c.is_commander }] }); toast(`${c.name} tolta dal mazzo`); history.back(); }); };
+  const makeCmd = (c: Any) => act(async () => {
+    await api(`/decks/${id}/cards/bulk-remove`, 'POST', { items: [{ oracle_id: c.oracle_id, is_commander: false }] });
+    await api(`/decks/${id}/cards`, 'POST', { oracle_id: c.oracle_id, delta: 1, is_commander: true, printing_id: c.printing_id }); toast(`${c.name} è il comandante`); history.back();
+  });
   const { bind, preview } = useCardPreview(); // anteprima grande sopra la miniatura
   if (!d || !v) return <p className="m">Caricamento…</p>;
 
@@ -76,7 +87,8 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
   const physical = d.mode === 'physical' && !d.archived;
   const allKeys = [...cmds, ...shown].map(keyOf), allSel = sel && allKeys.length > 0 && allKeys.every(k => sel.has(k));
 
-  const Card = (c: Any) => <div className={'item' + (sel ? ' tap' : '') + (sel?.has(keyOf(c)) ? ' selected' : '')} key={keyOf(c)} onClick={sel ? () => toggle(keyOf(c)) : undefined}>
+  const Card = (c: Any) => <div className={'item' + (sel || !isWide ? ' tap' : '') + (sel?.has(keyOf(c)) ? ' selected' : '')} key={keyOf(c)}
+    onClick={sel ? () => toggle(keyOf(c)) : isWide ? undefined : e => { if (!(e.target as HTMLElement).closest('button')) setDet(keyOf(c)); }}>
     {sel && <Check on={sel.has(keyOf(c))} />}
     <img className="thumb" alt="" loading="lazy" src={c.image} {...bind(c.image)} />
     <div className="g"><div className="name">{c.name}</div>
@@ -140,7 +152,9 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
 
     {q.trim().length >= 2 && !sel && <ScryResults q={q} mode="cards" title="Aggiungi al mazzo" actions={c => <>
       {canCommand(c) && cmds.length < 2 && <button className="soft small" onClick={() => add(c, true)}>Comandante</button>}
-      <button className="b icon" aria-label={'Aggiungi ' + c.name} onClick={() => add(c)}><Icon name="plus" /></button></>} />}
+      <button className="b icon" aria-label={'Aggiungi ' + c.name} onClick={() => add(c)}><Icon name="plus" /></button></>}
+      bar={(c, close) => <>{canCommand(c) && cmds.length < 2 && <button className="wide" onClick={() => { add(c, true); close(); }}><Icon name="user" />Comandante</button>}
+        <button className="b" onClick={() => { add(c); close(); }}><Icon name="plus" />Aggiungi al mazzo</button></>} />}
 
     {(cmds.length > 0 || !qq) && <div className="list">
       <div className="listhead">Comandante{cmds.length === 2 ? 'i' : ''}</div>
@@ -163,6 +177,21 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
   </div></div>
 
   {preview}
+  {det && (() => { const c = d.cards.find((x: Any) => keyOf(x) === det); if (!c) return null; const miss = physical ? c.need - c.got : 0;
+    return <CardDetail key={det} printingId={c.printing_id} name={c.name} ctx="deck" onClose={() => setDet(null)} onChanged={load}
+      panel={<section className="panel">
+        <div className="ph"><b>Nel mazzo {d.name}</b><small>{c.is_commander ? 'Comandante' : groupOf(c)}</small></div>
+        {!c.is_commander && <div className="qtyrow" style={{ margin: '6px 0' }}><div className="g"><b>Copie nel mazzo</b><small className="m" style={{ display: 'block' }}>{physical ? `${c.got} riservate dalla tua collezione` : 'mazzo virtuale: non riserva copie'}</small></div>
+          <Stepper value={c.need} onMinus={() => c.need > 1 ? dc(c, -1) : removeOne(c)} onPlus={() => dc(c, 1)} label={'Copie di ' + c.name} /></div>}
+        {c.prints?.length > 0 && <p className="m" style={{ margin: '4px 0', fontSize: 14 }}>Stampe nel mazzo: {c.prints.map((x: Any) => `${x.set_code.toUpperCase()} #${x.collector_number} ×${x.qty}`).join(' · ')}</p>}
+        {miss > 0 && <p className="wa" style={{ margin: '4px 0' }}>{miss === 1 ? 'Manca 1 copia' : `Mancano ${miss} copie`}: non ne hai libere in collezione.</p>}
+        {!c.is_commander && dupes.has(c.oracle_id) && <p className="er" style={{ margin: '4px 0' }}>È già il comandante del mazzo.</p>}
+        <div className="pillrow">
+          {miss > 0 && <button className="pchip" onClick={() => collect(c)}><Icon name="plus" size={16} />Ce l’ho: aggiungila alla collezione</button>}
+          {!c.is_commander && canCommand(c) && cmds.length < 2 && <button className="pchip" onClick={() => makeCmd(c)}><Icon name="user" size={16} />Rendi comandante</button>}</div>
+      </section>}
+      bar={<><button className="icon sq" aria-label="Aggiungi ai desideri" onClick={() => wishOne(c)}><Icon name="heart" /></button>
+        <button className="danger wide" onClick={() => removeOne(c)}><Icon name="trash" />Togli dal mazzo</button></>} />; })()}
   {sel && <SelBar actions={[
     { icon: 'close', label: 'Fine', onClick: () => setSel(null) },
     { icon: 'trash', label: 'Togli dal mazzo', tone: 'danger', disabled: !sel.size, onClick: removeSelected },

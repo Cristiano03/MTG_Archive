@@ -532,7 +532,7 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 .recent .pr, .copyrow .pr { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* scheda della carta */
-.cdetail { position: fixed; inset: 0; z-index: 80; overflow-y: auto; overscroll-behavior: contain; background: var(--paper); animation: fade .2s ease;
+.cdetail { position: fixed; inset: 0; z-index: 110; overflow-y: auto; overscroll-behavior: contain; background: var(--paper); animation: fade .2s ease;
   padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 .cd-art { position: absolute; left: 0; right: 0; top: 0; height: 620px; background: var(--art) center 20% / cover no-repeat; filter: blur(40px) saturate(1.2); opacity: .45; pointer-events: none;
   -webkit-mask: linear-gradient(#000 30%, transparent); mask: linear-gradient(#000 30%, transparent); }
@@ -578,6 +578,17 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   background: linear-gradient(transparent, var(--paper) 35%); }
 .cd-bar button.b { flex: 1; min-height: 52px; border-radius: 16px; font-size: 16.5px; }
 .cd-bar button.sq { width: 52px; min-height: 52px; border-radius: 16px; background: var(--sheet); }
+
+.cdetail ~ .sheet-wrap { z-index: 120; }
+.cdetail ~ .menu { z-index: 125; }
+.toast { z-index: 130; }
+.copyrow:disabled { opacity: 1; cursor: default; }
+.cd-bar > button.wide { flex: 1; min-height: 52px; border-radius: 16px; font-size: 16px; background: var(--sheet); border-color: transparent; }
+.cd-bar > button.danger.wide { background: color-mix(in srgb, var(--er) 16%, var(--sheet)); color: var(--er); }
+.cd-acts { display: flex; gap: 10px; flex: 1; justify-content: flex-end; }
+.cd-acts > button { min-height: 52px; border-radius: 16px; }
+.cd-acts > button.b { flex: 1; }
+.ftext { cursor: pointer; }
 
 /* modifica della copia, griglia della collezione */
 .edhead { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -672,6 +683,11 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   .mana-toggles button[data-c=W] { --mc: var(--mana-w); } .mana-toggles button[data-c=U] { --mc: var(--mana-u); } .mana-toggles button[data-c=B] { --mc: var(--mana-b); }
   .mana-toggles button[data-c=R] { --mc: var(--mana-r); } .mana-toggles button[data-c=G] { --mc: var(--mana-g); } .mana-toggles button[data-c=C] { --mc: var(--mana-c); }
 
+  /* nel mazzo: i sei colori su una riga intera, l'ordinamento sotto */
+  .toolbar.inset .chips { flex-wrap: wrap; }
+  .toolbar.inset .chips > .mana-toggles { flex: 1 1 100%; }
+  .toolbar.inset .chips > .vsep { display: none; }
+  .toolbar.inset .chips > select { flex: 0 0 auto; margin-left: auto; min-height: 38px; }
   /* riepilogo + ordinamento ("⇅ Prezzo") */
   .summary { margin: 10px 2px 2px !important; font-size: 14.5px !important; }
   .sortlink { position: relative; display: inline-flex; align-items: center; gap: 4px; flex: none; color: var(--ink); font-weight: 600; }

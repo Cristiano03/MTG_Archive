@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import Icon from '../../components/Icon';
 import ActionBar from '../../components/ActionBar';
+import CardDetail from '../card/CardDetail';
 type Any = any;
 
 export default function Import() {
   const [text, setText] = useState(''), [target, setTarget] = useState('collection'), [decks, setDecks] = useState<Any[]>([]);
-  const [rows, setRows] = useState<Any[] | null>(null), [busy, setBusy] = useState(false), [msg, setMsg] = useState(''), [addMode, setAddMode] = useState('missing');
+  const [peek, setPeek] = useState<Any | null>(null), [rows, setRows] = useState<Any[] | null>(null), [busy, setBusy] = useState(false), [msg, setMsg] = useState(''), [addMode, setAddMode] = useState('missing');
   const physical = decks.find(d => String(d.id) === target && d.mode === 'physical' && !d.archived);
   useEffect(() => { api('/decks').then(setDecks).catch(() => {}); }, []);
   const ok = (rows ?? []).filter(r => r.printing_id);
@@ -30,9 +31,10 @@ export default function Import() {
     {msg && <div className="card ok">{msg}</div>}
     {rows && <div className="card"><b>Anteprima</b><p style={{ margin: '4px 0' }}>{ok.length} riconosciute, {rows.length - ok.length} con problemi</p>
       <div className={target === 'collection' ? 'wa' : 'm'}>{target === 'collection' ? 'Le quantità verranno aggiunte alle copie che già possiedi.' : physical && addMode !== 'none' ? 'Le carte che non hai libere verranno aggiunte anche alla collezione.' : 'Le carte vanno nel mazzo; la collezione non cambia.'}</div>
-      <div className="list">{rows.map((r, i) => <div className="item" key={i}>{r.image ? <img className="thumb" alt="" src={r.image} /> : <span className="thumb" />}
+      <div className="list">{rows.map((r, i) => <div className="item" key={i}>{r.image ? <img className="thumb" alt="" src={r.image} onClick={() => r.printing_id && !matchMedia('(min-width: 900px)').matches && setPeek(r)} /> : <span className="thumb" />}
         <div className="g">{r.qty ? r.qty + '× ' : ''}{r.card_name ?? r.name ?? r.line}{r.section === 'cmd' ? ' ★' : ''}<br />
           <small className={r.status === 'ok' ? 'ok' : r.status === 'fuzzy' ? 'wa' : 'er'}>{r.status === 'ok' ? '✔ riconosciuta' : r.msg}{r.set_code ? `, ${r.set_code.toUpperCase()} ${r.collector_number}` : ''}</small></div></div>)}</div>
+      {peek && <CardDetail printingId={peek.printing_id} name={peek.card_name} ctx="search" bar={null} onClose={() => setPeek(null)} />}
       <small>Le righe con problemi vengono saltate: correggi il testo e analizza di nuovo.</small></div>}
     <ActionBar>{rows
       ? <><button onClick={() => setRows(null)}>Modifica</button><button className="b" disabled={busy || !ok.length} onClick={commit}><Icon name="check" />Importa {ok.length} righe</button></>
