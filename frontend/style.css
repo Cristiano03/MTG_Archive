@@ -659,8 +659,7 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   .top.t-c .acct { display: none; }
   /* mazzo aperto: al posto del titolo la freccia per tornare indietro */
   .top-lead { display: contents; }
-  .top:has(#top-lead > *) h1 { visibility: hidden; }
-  .top:has(#top-lead > *) + .page .dhero { margin-top: -18px; }
+  .top:has(#top-lead > *) + .page .dhero { margin-top: -4px; }
   .top.t-h h1 { font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
   .top > button.icon { margin-right: 0; }
   .top > button.icon, .toolbar button.icon { width: 46px; min-height: 46px; border-radius: 14px; background: transparent; border: 1px solid var(--line); color: var(--ink); }
@@ -773,6 +772,14 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
   .sheet-head > button.icon { width: 46px; min-height: 46px; border-radius: 14px; background: transparent; border: 1px solid #4a5057; }
   .sheet .list, .sheet .card, .sheet .tile { background: var(--sunk); }
   .sheet input, .sheet select, .sheet textarea { background-color: var(--sunk); }
+  /* campi dentro riquadri e schede: incassati e con il bordo, così si distinguono dal fondo */
+  .card input:not([type=checkbox]):not([type=radio]), .card select, .card textarea,
+  .panel input:not([type=checkbox]), .panel select, .panel textarea,
+  .itemx input:not([type=checkbox]), .itemx select, .itemx textarea,
+  .sheet input:not([type=checkbox]), .sheet select, .sheet textarea {
+    background-color: #1d2125; border: 1px solid #454b52; box-shadow: 0 2px 6px rgba(0, 0, 0, .3) inset; }
+  .card input:focus, .card select:focus, .card textarea:focus, .panel input:focus, .itemx input:focus, .sheet input:focus, .sheet select:focus, .sheet textarea:focus { border-color: var(--ink-2); }
+  .kvlist .notein input { box-shadow: none; }
   .sheet .seg { background: var(--sunk); }
   .sheet .mana-toggles button { background: var(--sunk); }
   .sheet-actions { border-top: 0; padding-top: 12px; }
