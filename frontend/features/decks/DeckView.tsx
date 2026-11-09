@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCardPreview } from '../../components/CardPreview';
 import { eur, stalePrices } from '../../components/Price';
 import { api, apiText, download, fail } from '../../services/api';
@@ -34,6 +35,9 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
   const [sel, setSel] = useState<Set<string> | null>(null); // chiavi oracle_id|comandante; null = modalità normale
   // telefono: toccare una carta apre la sua scheda con le opzioni del mazzo
   const isWide = useWide(), [det, setDet] = useState<string | null>(null);
+  // telefono: la freccia per tornare ai mazzi prende il posto del titolo nell'intestazione
+  const [lead, setLead] = useState<HTMLElement | null>(null);
+  useEffect(() => { setLead(document.getElementById('top-lead')); }, []);
   const keyOf = (c: Any) => c.oracle_id + '|' + (c.is_commander ? 1 : 0);
   const toggle = (k: string) => setSel(cur => { const n = new Set(cur); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const load = useCallback(async () => { try { const [a, b] = await Promise.all([api('/decks/' + id), api(`/decks/${id}/validation`)]); setD(a); setV(b); return a; } catch (e) { fail(e); } }, [id]);
@@ -107,7 +111,8 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
       : <Stepper value={c.need} onMinus={() => dc(c, -1)} onPlus={() => dc(c, 1)} label={'Copie di ' + c.name} />}</div>;
 
   return <><div className="split"><div>
-    <button className="ghost backlink" onClick={back}><Icon name="back" />Mazzi</button>
+    <button className="ghost backlink d-only" onClick={back}><Icon name="back" />Mazzi</button>
+    {!isWide && lead && createPortal(<button className="icon sq" aria-label="Torna ai mazzi" onClick={back}><Icon name="back" /></button>, lead)}
     {/* telefono: comandante in 3D con l'aura e sfondo sfumato nei suoi colori */}
     <div className="deckbg m-only" style={{ '--glow': glow(ci) } as React.CSSProperties} />
     <section className="dhero m-only" style={{ '--glow': glow(ci) } as React.CSSProperties}>
