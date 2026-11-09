@@ -26,5 +26,5 @@ export default function HomePage({ go }: { go: Go }) {
   if (!s) return err ? <div className="card er"><b>Dati non disponibili</b><p style={{ margin: '6px 0 10px' }}>{err}</p><button onClick={load}>Riprova</button></div> : <p className="m">Caricamento…</p>;
   // sul telefono la Home ha la grafica del prototipo
   // stessa Home su telefono e computer; sul computer niente carte in evidenza e due colonne
-  return <><InstallButton /><HomeMobile s={s} wish={wish} pricing={pricing} go={go} featured={!isWide} /></>;
+  return <><InstallButton /><HomeMobile s={s} wish={wish} pricing={pricing} go={go} featured /></>;
 }

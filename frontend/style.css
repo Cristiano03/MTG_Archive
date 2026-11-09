@@ -832,6 +832,35 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--i
   .cdetail:not(.inline) .cd-top { padding-top: 14px; }
 }
 
+/* pannello della carta senza barra di scorrimento visibile (si scorre lo stesso) */
+.cdetail { scrollbar-width: none; }
+.cdetail::-webkit-scrollbar { display: none; }
+/* il nome, i colori e il prezzo restano sopra l'aura della carta */
+.splitname, .ctags, .cd-price, .pricechip, .dots, .hint, .ftext { position: relative; z-index: 2; }
+.cd-cardwrap, .fan { z-index: 1; }
+/* righe della collezione e dei desideri: angoli arrotondati quando sono evidenziate, niente linee di griglia */
+.list.flat > .item { border-radius: 14px; }
+.list.flat > .item.cur, .list.flat > .item.selected { border-top-color: transparent; }
+.list.flat > .item.cur + .item, .list.flat > .item.selected + .item { border-top-color: transparent; }
+@media (min-width: 900px) {
+  .list.grid2.flat > * { box-shadow: none !important; }
+  .list.flat > .item { margin: 0 -14px; padding: 14px; }
+  .list.flat > * + *:not(.itemx) { border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent); }
+  .colgrid .list.flat > .item.cur { margin: 0 -14px; padding: 14px; }
+  @media (hover: hover) { .list.flat > .item.tap:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); } }
+}
+
+/* "Almeno uno / Tutti i colori" sotto i sei colori */
+.chips:has(.colormatch) { flex-wrap: wrap; }
+.seg.colormatch { flex: 1 1 100%; margin: 8px 0 0; }
+.seg.colormatch button { min-height: 34px; font-size: 14px; }
+.chips:has(.colormatch) > .vsep { display: none; }
+
+.deckart { position: absolute; top: 0; left: 0; right: 0; height: 480px; z-index: -1; display: flex; pointer-events: none; opacity: .5;
+  -webkit-mask: linear-gradient(#000 25%, transparent 95%); mask: linear-gradient(#000 25%, transparent 95%); }
+.deckart i { flex: 1; background: center 30% / cover no-repeat; filter: saturate(1.1); }
+@media (min-width: 900px) { .deckart { height: 560px; opacity: .45; } }
+
 /* ---------- solo telefono: intestazione fusa con la pagina, barra in basso a icone ---------- */
 @media (max-width: 899px) {
   .d-only { display: none !important; }

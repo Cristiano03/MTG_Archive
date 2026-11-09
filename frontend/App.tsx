@@ -72,7 +72,7 @@ function Main({ email, onLogout }: { email: string; onLogout: () => void }) {
     <header className={"top t-" + tab}>
       <button className="brand" onClick={() => go('h')}><img src="/icons/icon-192.png" alt="" />MTG Commander Archive</button>
       <nav className="nav" aria-label="Sezioni">{TABS.map(t => <button key={t.k} className={(tab === t.k ? 'on ' : '') + (t.mobile ? 'mobile-only' : '')} aria-current={tab === t.k ? 'page' : undefined} onClick={() => go(t.k)}><Icon name={t.icon} />{t.label}</button>)}</nav>
-      {sub && <button className="icon ghost" aria-label="Indietro" onClick={() => go(prev)}><Icon name="back" /></button>}
+      {sub && tab !== 'u' && <button className="icon ghost" aria-label="Indietro" onClick={() => go(prev)}><Icon name="back" /></button>}
       <div id="top-lead" className="top-lead m-only" />
       <h1>{TITLE[tab]}</h1>
       {tab === 'h' && <button className="icon" aria-label="Aggiungi" onClick={() => setAdding(true)}><Icon name="plus" /></button>}

@@ -43,8 +43,12 @@ export function SortControl({ value, onChange, keys }: { value: Sort; onChange: 
 // pallini dei colori da toccare (filtro rapido, sempre in vista)
 export function ManaToggles({ value, onChange }: { value: ColorFilter; onChange: (f: ColorFilter) => void }) {
   const toggle = (c: string) => onChange({ ...value, col: value.col.includes(c) ? value.col.filter(x => x !== c) : [...value.col, c] });
-  return <div className="mana-toggles" role="group" aria-label="Filtra per colore">{COLS.map(c =>
-    <button key={c} data-c={c} className={value.col.includes(c) ? 'on' : ''} aria-pressed={value.col.includes(c)} aria-label={COL_IT[c]} title={COL_IT[c]} onClick={() => toggle(c)}><span className={'pip ' + c} /></button>)}</div>;
+  // con due o più colori: carte con almeno uno dei colori, oppure solo quelle che li hanno tutti
+  return <><div className="mana-toggles" role="group" aria-label="Filtra per colore">{COLS.map(c =>
+    <button key={c} data-c={c} className={value.col.includes(c) ? 'on' : ''} aria-pressed={value.col.includes(c)} aria-label={COL_IT[c]} title={COL_IT[c]} onClick={() => toggle(c)}><span className={'pip ' + c} /></button>)}</div>
+    {value.col.length > 1 && value.by !== 'playable' && <div className="seg colormatch" role="radiogroup" aria-label="Quali carte con i colori scelti">
+      <button role="radio" aria-checked={!value.all} className={!value.all ? 'on' : ''} onClick={() => onChange({ ...value, all: false })}>Almeno uno</button>
+      <button role="radio" aria-checked={value.all} className={value.all ? 'on' : ''} onClick={() => onChange({ ...value, all: true })}>Tutti i colori</button></div>}</>;
 }
 // ordinamento compatto per la barra degli strumenti: un solo menu con criterio e direzione (↑ crescente, ↓ decrescente)
 const SHORT: Record<SortKey, string> = { name: 'Nome', cmc: 'Costo', qty: 'Copie', set: 'Edizione', recent: 'Recenti', price: 'Prezzo', value: 'Valore' };

@@ -41,7 +41,29 @@ export default function Wishlist() {
   const toBuy = rows.reduce((t, r) => t + r.to_buy, 0), cost = rows.reduce((t, r) => t + (r.price_ref ? r.to_buy * Number(r.price_ref) : 0), 0);
   const toggle = (r: Any) => { setDet(r.id); setMode(null); }; // scheda della carta con le opzioni della lista (telefono e computer)
 
-  return <>
+  const closeDet = () => { if (matchMedia('(min-width: 900px)').matches) setDet(null); else history.back(); };
+  // scheda della carta con le opzioni della lista: pannello a sinistra sul computer, a tutto schermo sul telefono
+  const detailOf = (id: number, inline: boolean) => { const r = rows.find(x => x.id === id); if (!r) return null;
+      return <CardDetail key={r.id} inline={inline} printingId={r.printing_id ?? idFromImage(r.image)} name={r.name} ctx="wish" onClose={() => { setDet(null); setMode(null); }} onChanged={load}
+        panel={<section className="panel">
+          <div className="ph"><b>Nella lista dei desideri</b><small className={r.to_buy ? 'wa' : 'ok'}>{r.to_buy ? `da comprare ${r.to_buy}` : 'coperta dalle copie libere'}</small></div>
+          <div className="qtyrow" style={{ margin: '6px 0' }}><div className="g"><b>Copie desiderate</b>{r.owned > 0 && <small className="m" style={{ display: 'block' }}>Ne hai {r.owned}, {r.free} {r.free === 1 ? 'libera' : 'libere'}</small>}</div>
+            <Stepper value={r.qty_wanted} label={'Copie desiderate di ' + r.name} onPlus={() => patch(r, { qty_wanted: r.qty_wanted + 1 })} onMinus={() => r.qty_wanted > 1 && patch(r, { qty_wanted: r.qty_wanted - 1 })} /></div>
+          <h4 className="lbl" style={{ marginTop: 10 }}>Priorità</h4>
+          <div className="pillrow" style={{ marginTop: 0 }}>{PRIO.map(([v, l]) => <button key={v} className={'pchip' + (String(r.priority ?? '') === v ? ' on' : '')} onClick={() => patch(r, { priority: v ? Number(v) : null })}>{l}</button>)}</div>
+          <div className="kvlist links" style={{ padding: 0, marginTop: 10 }}>
+            <button onClick={() => setMode(mode === 'print' ? null : 'print')}><span>Stampa</span><span>{r.printing_id ? `${r.set_code?.toUpperCase()} · #${r.collector_number}` : 'Qualsiasi'}</span><Icon name={mode === 'print' ? 'close' : 'next'} /></button>
+            <div className="notein"><span>Nota</span><input key={r.id} defaultValue={r.note ?? ''} placeholder="Aggiungi" maxLength={500} onBlur={e => e.target.value !== (r.note ?? '') && patch(r, { note: e.target.value })} /></div>
+            {r.price_ref != null && <div><span>Prezzo di riferimento</span><span>{eur(r.price_ref)}</span></div>}</div>
+          {mode === 'print' && <PrintPicker oracleId={r.oracle_id} name={r.name} onPick={p => setPrint(r, p)} onCancel={() => setMode(null)} />}
+          {mode === 'buy' && <Purchase r={r} done={m => { setMode(null); toast(m); load(); closeDet(); }} />}
+        </section>}
+        bar={<><button className="icon sq" aria-label={'Togli ' + r.name + ' dalla lista'} onClick={() => { if (confirm(`Togliere ${r.name} dalla lista?`)) act(async () => { await api('/wishlist/' + r.id, 'DELETE'); toast(`${r.name} tolta dalla lista`); closeDet(); }); }}><Icon name="trash" /></button>
+          <button className="b" onClick={() => setMode(mode === 'buy' ? null : 'buy')}><Icon name="check" />{mode === 'buy' ? 'Annulla acquisto' : 'Ho comprato'}</button></>} />; };
+  const side = isWide ? rows.find(x => x.id === det) ?? rows[0] ?? null : null;
+  return <div className={isWide ? 'colgrid' : undefined}>
+    {side && <aside className="dside">{detailOf(side.id, true)}</aside>}
+    <div className="colmain">
     <div className="toolbar">
       <div className="row"><div className="search"><Icon name="search" />
         <input type="search" enterKeyHint="search" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="Aggiungi una carta alla lista" aria-label="Cerca una carta da aggiungere alla lista" value={q} onChange={e => setQ(e.target.value)} />
@@ -59,8 +81,8 @@ export default function Wishlist() {
       <span className="num" style={{ fontSize: 34 }}>{toBuy}</span><span>{toBuy === 1 ? 'copia da comprare' : 'copie da comprare'}</span>
       {cost > 0 && <span className="m" style={{ marginLeft: 'auto' }}>circa <b style={{ color: 'var(--ink)' }}>{eur(cost)}</b></span>}</div>}
 
-    {rows.length > 0 && <div className="list">{rows.map(r => <Fragment key={r.id}>
-      <div className={'item tap' + (open === r.id ? ' open' : '')} onClick={() => toggle(r)}>
+    {rows.length > 0 && <div className="list flat">{rows.map(r => <Fragment key={r.id}>
+      <div className={'item tap' + (isWide && side?.id === r.id ? ' cur' : '')} onClick={() => toggle(r)}>
         {r.image ? <img className="thumb" alt="" loading="lazy" src={r.image} {...bind(r.image)} /> : <span className="thumb" />}
         <div className="g"><div className="name">{r.name}</div>
           <div className="meta"><span className={r.to_buy ? 'wa' : 'ok'}>{r.to_buy ? `da comprare ${r.to_buy}` : 'coperta dalle copie libere'}</span>
@@ -84,24 +106,8 @@ export default function Wishlist() {
     </Fragment>)}</div>}
     {loaded && !rows.length && !choosing && q.trim().length < 2 && <div className="card empty"><b>Lista vuota</b><p className="m">Scrivi qui sopra il nome di una carta che cerchi, oppure apri un mazzo incompleto e usa “Mancanti → Mettile nella lista dei desideri”.</p></div>}
     {preview}
-    {det && (() => { const r = rows.find(x => x.id === det); if (!r) return null;
-      return <CardDetail key={r.id} printingId={r.printing_id ?? idFromImage(r.image)} name={r.name} ctx="wish" onClose={() => { setDet(null); setMode(null); }} onChanged={load}
-        panel={<section className="panel">
-          <div className="ph"><b>Nella lista dei desideri</b><small className={r.to_buy ? 'wa' : 'ok'}>{r.to_buy ? `da comprare ${r.to_buy}` : 'coperta dalle copie libere'}</small></div>
-          <div className="qtyrow" style={{ margin: '6px 0' }}><div className="g"><b>Copie desiderate</b>{r.owned > 0 && <small className="m" style={{ display: 'block' }}>Ne hai {r.owned}, {r.free} {r.free === 1 ? 'libera' : 'libere'}</small>}</div>
-            <Stepper value={r.qty_wanted} label={'Copie desiderate di ' + r.name} onPlus={() => patch(r, { qty_wanted: r.qty_wanted + 1 })} onMinus={() => r.qty_wanted > 1 && patch(r, { qty_wanted: r.qty_wanted - 1 })} /></div>
-          <h4 className="lbl" style={{ marginTop: 10 }}>Priorità</h4>
-          <div className="pillrow" style={{ marginTop: 0 }}>{PRIO.map(([v, l]) => <button key={v} className={'pchip' + (String(r.priority ?? '') === v ? ' on' : '')} onClick={() => patch(r, { priority: v ? Number(v) : null })}>{l}</button>)}</div>
-          <div className="kvlist links" style={{ padding: 0, marginTop: 10 }}>
-            <button onClick={() => setMode(mode === 'print' ? null : 'print')}><span>Stampa</span><span>{r.printing_id ? `${r.set_code?.toUpperCase()} · #${r.collector_number}` : 'Qualsiasi'}</span><Icon name={mode === 'print' ? 'close' : 'next'} /></button>
-            <div className="notein"><span>Nota</span><input key={r.id} defaultValue={r.note ?? ''} placeholder="Aggiungi" maxLength={500} onBlur={e => e.target.value !== (r.note ?? '') && patch(r, { note: e.target.value })} /></div>
-            {r.price_ref != null && <div><span>Prezzo di riferimento</span><span>{eur(r.price_ref)}</span></div>}</div>
-          {mode === 'print' && <PrintPicker oracleId={r.oracle_id} name={r.name} onPick={p => setPrint(r, p)} onCancel={() => setMode(null)} />}
-          {mode === 'buy' && <Purchase r={r} done={m => { setMode(null); toast(m); load(); history.back(); }} />}
-        </section>}
-        bar={<><button className="icon sq" aria-label={'Togli ' + r.name + ' dalla lista'} onClick={() => { if (confirm(`Togliere ${r.name} dalla lista?`)) act(async () => { await api('/wishlist/' + r.id, 'DELETE'); toast(`${r.name} tolta dalla lista`); history.back(); }); }}><Icon name="trash" /></button>
-          <button className="b" onClick={() => setMode(mode === 'buy' ? null : 'buy')}><Icon name="check" />{mode === 'buy' ? 'Annulla acquisto' : 'Ho comprato'}</button></>} />; })()}
-  </>;
+    {!isWide && det && detailOf(det, false)}
+  </div></div>;
 }
 
 // Acquisto guidato: scegli la stampa comprata, quante e in che stato; entra nella collezione e scala dalla lista.

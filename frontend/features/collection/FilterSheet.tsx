@@ -17,9 +17,9 @@ export default function FilterSheet({ f, setF, color, setColor, sort, setSort, d
     <h4 className="lbl first">Identità di colore</h4>
     <ManaToggles value={color} onChange={setColor} />
     <div className="seg" style={{ marginTop: 10 }}>
-      <button className={!playable ? 'on' : ''} onClick={() => setColor({ ...color, by: 'identity', all: true })}>Contengono</button>
+      <button className={!playable ? 'on' : ''} onClick={() => setColor({ ...color, by: 'identity' })}>Contengono</button>
       <button className={playable ? 'on' : ''} onClick={() => setColor({ ...color, by: 'playable' })}>Giocabili nel mazzo</button></div>
-    <p className="m explain"><b>Contengono:</b> tutti i colori scelti, anche con altri.<br /><b>Giocabili:</b> rientrano nell’identità, incolori incluse.</p>
+    <p className="m explain"><b>Contengono:</b> i colori scelti (almeno uno o tutti, con due o più colori), anche insieme ad altri.<br /><b>Giocabili:</b> rientrano nell’identità, incolori incluse.</p>
 
     <h4 className="lbl">Rarità</h4>
     <div className="pillrow">{RAR.map(([k, l]) => <button key={k} className={'pchip' + (rars.includes(k) ? ' on' : '')} onClick={() => togRar(k)}>{l}</button>)}</div>

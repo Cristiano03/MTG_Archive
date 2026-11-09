@@ -137,6 +137,8 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
     {!isWide && lead && createPortal(<button className="icon sq" aria-label="Torna ai mazzi" onClick={back}><Icon name="back" /></button>, lead)}
     {/* telefono: comandante in 3D con l'aura e sfondo sfumato nei suoi colori */}
     <div className="deckbg" style={{ '--glow': glow(ci) } as React.CSSProperties} />
+    {/* illustrazione del comandante (o dei due comandanti) in cima allo sfondo, sfumata verso il basso */}
+    {cmds.length > 0 && <div className="deckart" aria-hidden="true">{cmds.map((c: Any) => <i key={c.oracle_id} style={{ backgroundImage: `url("${big(c.image, 'art_crop')}")` }} />)}</div>}
     <section className="dhero" style={{ '--glow': glow(ci) } as React.CSSProperties}>
       <div className={'dcmd n' + cmds.length}><span className="aura" />
         {cmds.length ? cmds.map((c: Any) => <Card3D key={c.oracle_id} src={big(c.image, 'normal')} onClick={() => setDet(keyOf(c))} />)
