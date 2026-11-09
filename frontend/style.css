@@ -496,6 +496,8 @@ button.link { border: 0; background: none; padding: 0; min-height: 0; color: var
 .bars button.on span { height: 26px; border-radius: 6px; background: var(--c); }
 .bars button small { font-size: 12px; color: var(--ink-2); font-weight: 500; }
 .bars button.on small { color: var(--ink); font-weight: 700; }
+.bars .bar-C span { background: color-mix(in srgb, var(--mana-c) 88%, var(--sheet)); }
+.bars .bar-C.on span { background: var(--mana-c); }
 .bar-W { --c: var(--mana-w); } .bar-U { --c: var(--mana-u); } .bar-B { --c: #77737d; } .bar-R { --c: var(--mana-r); } .bar-G { --c: var(--mana-g); } .bar-C { --c: var(--mana-c); }
 .stat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
 .stat3 > * { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 76px; padding: 12px 14px; border-radius: 18px; background: var(--sheet); border: 0; text-align: left; font-weight: 400; white-space: normal; }
