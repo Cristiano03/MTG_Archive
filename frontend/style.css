@@ -938,3 +938,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--i
   .sheet { background: var(--sheet); border-radius: 26px 26px 0 0; padding-top: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* carte consigliate da EDHREC: categorie in una riga che scorre, link al sito nell'intestazione */
+.sugg { margin-top: 16px; }
+.sugg .listhead a { color: inherit; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.item.sugg-tags { gap: 8px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; min-height: 56px; }
+.item.sugg-tags::-webkit-scrollbar { display: none; }
+.sugg-tags .pchip { flex: none; min-height: 36px; font-size: 14px; }

@@ -13,6 +13,7 @@ import { toast } from '../../components/Toast';
 import { Spine, Pips } from '../../components/Mana';
 import { ManaCost, ManaToggles, NO_COLOR, SortChip, matchColor, sortCards, type ColorFilter, type Sort } from '../../components/CardTools';
 import DeckText from './DeckText';
+import Suggestions from './Suggestions';
 import Check from '../../components/Check';
 import Menu from '../../components/Menu';
 import type { Go } from '../../pages/tabs';
@@ -200,6 +201,7 @@ export default function DeckView({ id, back, go }: { id: number; back: () => voi
       <div className="listhead" key={'h' + g}>{g}<span className="n">{l.reduce((t: number, c: Any) => t + c.need, 0)}</span></div>, ...l.map(Card)])}</div>
       : <p className="m" style={{ textAlign: 'center' }}>{main.length ? (qq ? `Nel mazzo non c’è “${q.trim()}”.` : 'Nessuna carta di questi colori.') : 'Ancora nessuna carta: cercale nella casella qui sopra, oppure incolla una lista con “Modifica come testo”.'}</p>}
     {(qq || color.col.length > 0) && main.length > 0 && <p className="m" style={{ fontSize: 14 }}>{shownCount} di {mainCount} carte mostrate.</p>}
+    {!qq && !sel && <Suggestions commanders={cmds.map((c: Any) => c.name)} inDeck={new Set(d.cards.map((c: Any) => c.name.split(' // ')[0].toLowerCase()))} add={add} />}
   </div>
 
   <div className="side">
