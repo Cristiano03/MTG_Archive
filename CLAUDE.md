@@ -8,8 +8,10 @@ Rispondi sempre in italiano.
 - `main` e il sito pubblico si aggiornano solo quando l'utente dice di pubblicare.
 
 ## Roadmap su Notion (da tenere aggiornata da solo)
-Pagina condivisa con il socio grafico: "Omiku — Roadmap della startup (Lancio · Fase 1 · Fase 2)"
-https://app.notion.com/p/415ac02fed6b81b2be1ef2325a6edeef
+Pagina condivisa con il socio grafico: "Omiku" (sezioni "🧭 Roadmap" e "📝 Appunti")
+https://app.notion.com/p/415ac02fed6b80e49f73e348da6c7ea1
+
+- Non cancellare né riscrivere quello che c'è già nella pagina (PDF del blueprint, idee per lo slogan e ciò che scrivono i soci): fai solo modifiche mirate o aggiunte.
 
 - Quando finisci un lavoro che corrisponde a una casella della roadmap, spuntala su Notion senza che te lo chiedano, e dillo nella risposta.
 - Nella sezione "📝 Appunti" in fondo alla pagina annota, senza che te lo chiedano:
