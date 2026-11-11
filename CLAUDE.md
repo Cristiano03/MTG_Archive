@@ -4,8 +4,8 @@
 Rispondi sempre in italiano.
 
 ## Rami e pubblicazione
-- Le modifiche di prova vanno sul ramo `prove` e sul canale di anteprima di Firebase.
-- `main` e il sito pubblico si aggiornano solo quando l'utente dice di pubblicare.
+- Si lavora sul ramo `beta` (versione da far provare prima del lancio) e sul canale di anteprima di Firebase.
+- `main` è la versione di lancio: lui e il sito pubblico si aggiornano solo quando l'utente dice di pubblicare.
 
 ## Roadmap su Notion (da tenere aggiornata da solo)
 Pagina condivisa con il socio grafico: "Omiku" (sezioni "🧭 Roadmap" e "📝 Appunti")
