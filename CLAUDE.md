@@ -4,7 +4,8 @@
 Rispondi sempre in italiano.
 
 ## Rami e pubblicazione
-- Si lavora sul ramo `beta` (versione da far provare prima del lancio) e sul canale di anteprima di Firebase.
+- Si lavora sul ramo `beta` (versione da far provare prima del lancio) e sul canale di anteprima `beta` di Firebase (`npm run firebase -- hosting:channel:deploy beta --only archive --expires 30d`).
+- Fino al lancio il sito pubblico è spento (`hosting:disable`): si prova solo con il link del canale `beta`.
 - `main` è la versione di lancio: lui e il sito pubblico si aggiornano solo quando l'utente dice di pubblicare.
 
 ## Roadmap su Notion (da tenere aggiornata da solo)
